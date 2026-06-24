@@ -1,5 +1,5 @@
 #!/bin/bash
-# deploy.sh — Run this on your DigitalOcean Droplet to deploy/update Pulefeed
+# deploy.sh — Run this on your Hostinger VPS to deploy/update Pulefeed
 # Usage: bash deploy.sh
 set -e
 
