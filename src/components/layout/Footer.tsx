@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { dict } from '@/lib/i18n'
+import { VisitorCounter } from './VisitorCounter'
 
 export function Footer() {
 
@@ -26,6 +27,7 @@ export function Footer() {
             >
               {dict.footerTagline}
             </p>
+            <VisitorCounter />
           </div>
 
 
