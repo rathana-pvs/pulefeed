@@ -70,7 +70,7 @@ EOF
     docker compose -f docker-compose.prod.yml up -d nginx
 
     echo "🔑 Requesting Let's Encrypt Certificate..."
-    docker compose -f docker-compose.prod.yml run --rm certbot certonly \
+    docker compose -f docker-compose.prod.yml run --rm --entrypoint "certbot" certbot certonly \
       --webroot \
       -w /var/www/certbot \
       -d pulefeed.com \
