@@ -83,7 +83,6 @@ export default buildConfig({
         ]
       : []),
   ],
-  serverURL: siteUrl,
   cors: [
     siteUrl,
     'https://pulefeed.tech',

@@ -1,5 +1,5 @@
 /**
- * Standalone Al Jazeera News API Migration Script (Dynamic Scraper)
+ * Standalone Al Jazeera News API Migration Script (Dynamic Scraper + Image Downloader)
  * Runs locally or on the VPS using standard Node.js (no dependencies needed).
  * 
  * Usage:
@@ -208,7 +208,51 @@ async function main() {
       console.log(`🔗 Scraping image for: "${item.title}"`);
       const scrapedImageUrl = await fetchOgImage(item.link);
       const coverImageUrl = scrapedImageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200';
-      console.log(`   Image URL: ${coverImageUrl}`);
+
+      // Download actual image bytes
+      let fileBlob;
+      let filename = `aljazeera-${slug}.jpg`;
+      
+      try {
+        console.log(`   Downloading image file: ${coverImageUrl}`);
+        const imgRes = await fetch(coverImageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+        if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+        
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+        const ext = contentType.split('/')[1] || 'jpg';
+        filename = `aljazeera-${slug}.${ext}`;
+        fileBlob = new Blob([Buffer.from(arrayBuffer)], { type: contentType });
+        console.log(`   ✓ Image downloaded successfully (${filename})`);
+      } catch (e) {
+        console.warn(`   ⚠️ Image download failed: ${e.message}. Using fallback placeholder.`);
+        fileBlob = new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA6ie6hQAAAABJRU5ErkJggg==', 'base64')], { type: 'image/png' });
+        filename = `placeholder-${slug}.png`;
+      }
+
+      // Upload to Payload Media collection (saved as source: local)
+      const mediaForm = new FormData();
+      mediaForm.append('alt', item.title);
+      mediaForm.append('source', 'local');
+      mediaForm.append('file', fileBlob, filename);
+
+      const mediaRes = await fetch(`${config.url}/api/media`, {
+        method: 'POST',
+        headers: { Authorization: `JWT ${token}` },
+        body: mediaForm,
+      });
+
+      if (!mediaRes.ok) {
+        const errMsg = await mediaRes.text();
+        throw new Error(`Media upload failed: ${mediaRes.statusText} (${errMsg})`);
+      }
+
+      const mediaDoc = await mediaRes.json();
+      const newMediaId = mediaDoc.doc.id;
 
       const tags = [
         { tag: item.category.toLowerCase() },
@@ -246,35 +290,13 @@ async function main() {
         isFeatured: false,
         credit: 'Al Jazeera',
         author: authorId,
+        coverImage: newMediaId,
         tags: tags,
       };
 
       if (!exists) {
         console.log(`➕ Creating article: "${item.title}"`);
         
-        // 1x1 base64 transparent pixel to satisfy upload/media
-        const blob = new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA6ie6hQAAAABJRU5ErkJggg==', 'base64')], { type: 'image/png' });
-        
-        const mediaForm = new FormData();
-        mediaForm.append('alt', item.title);
-        mediaForm.append('source', 'external');
-        mediaForm.append('externalUrl', coverImageUrl);
-        mediaForm.append('file', blob, `external-${slug}.png`);
-
-        const mediaRes = await fetch(`${config.url}/api/media`, {
-          method: 'POST',
-          headers: { Authorization: `JWT ${token}` },
-          body: mediaForm,
-        });
-
-        if (!mediaRes.ok) {
-          const errMsg = await mediaRes.text();
-          throw new Error(`Media creation failed: ${mediaRes.statusText} (${errMsg})`);
-        }
-
-        const mediaDoc = await mediaRes.json();
-        articlePayload.coverImage = mediaDoc.doc.id;
-
         const createArticleRes = await fetch(`${config.url}/api/articles`, {
           method: 'POST',
           headers: {
@@ -293,24 +315,7 @@ async function main() {
         const existingDoc = checkData.docs[0];
         console.log(`🔄 Updating article: "${item.title}"`);
         
-        const mediaId = typeof existingDoc.coverImage === 'object' ? existingDoc.coverImage.id : existingDoc.coverImage;
-
-        if (mediaId) {
-          // Update external media record
-          const updateMediaRes = await fetch(`${config.url}/api/media/${mediaId}`, {
-            method: 'PATCH',
-            headers: {
-              Authorization: `JWT ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              alt: item.title,
-              source: 'external',
-              externalUrl: coverImageUrl,
-            }),
-          });
-          if (!updateMediaRes.ok) console.warn(`  ⚠️ Warning: Failed to update media record: ${updateMediaRes.statusText}`);
-        }
+        const oldMediaId = typeof existingDoc.coverImage === 'object' ? existingDoc.coverImage.id : existingDoc.coverImage;
 
         const updateArticleRes = await fetch(`${config.url}/api/articles/${existingDoc.id}`, {
           method: 'PATCH',
@@ -325,7 +330,20 @@ async function main() {
           const errMsg = await updateArticleRes.text();
           throw new Error(`Article update failed: ${updateArticleRes.statusText} (${errMsg})`);
         }
-        console.log(`  ✓ Successfully updated!`);
+        console.log(`  ✓ Successfully updated article!`);
+
+        // Safely delete the old media to avoid orphans in DB
+        if (oldMediaId && oldMediaId !== newMediaId) {
+          try {
+            await fetch(`${config.url}/api/media/${oldMediaId}`, {
+              method: 'DELETE',
+              headers: { Authorization: `JWT ${token}` },
+            });
+            console.log(`  ✓ Cleaned up old media record (ID: ${oldMediaId})`);
+          } catch (delErr) {
+            console.warn(`  ⚠️ Failed to delete old media record (ID: ${oldMediaId}):`, delErr.message);
+          }
+        }
       }
     } catch (err) {
       console.error(`  ❌ Error processing "${item.title}":`, err.message);
