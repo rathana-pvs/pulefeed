@@ -41,49 +41,17 @@ else
     # Fallback email for SSL registration
     EMAIL="admin@pulefeed.tech"
 
-    # Backup original nginx.conf
-    cp nginx/nginx.conf nginx/nginx.conf.bak
+    echo "🛑 Ensuring port 80 is free (stopping Nginx)..."
+    docker compose -f docker-compose.prod.yml down nginx || true
 
-    # Create temporary Nginx configuration for HTTP port 80 only (no SSL)
-    cat << 'EOF' > nginx/nginx.conf
-events {
-    worker_processes auto;
-    worker_connections 1024;
-}
-http {
-    include /etc/nginx/mime.types;
-    server {
-        listen 80;
-        server_name pulefeed.tech www.pulefeed.tech;
-        location /.well-known/acme-challenge/ {
-            root /var/www/certbot;
-        }
-        location / {
-            return 200 'SSL Bootstrapping...';
-            add_header Content-Type text/plain;
-        }
-    }
-}
-EOF
-
-    echo "🧱 Starting temporary Nginx server..."
-    docker compose -f docker-compose.prod.yml up -d nginx
-
-    echo "🔑 Requesting Let's Encrypt Certificate..."
-    docker compose -f docker-compose.prod.yml run --rm --entrypoint "certbot" certbot certonly \
-      --webroot \
-      -w /var/www/certbot \
+    echo "🔑 Requesting Let's Encrypt Certificate in Standalone Mode..."
+    docker compose -f docker-compose.prod.yml run --rm -p 80:80 --entrypoint "certbot" certbot certonly \
+      --standalone \
       -d pulefeed.tech \
       -d www.pulefeed.tech \
       --email "$EMAIL" \
       --agree-tos \
       --no-eff-email
-
-    echo "🛑 Stopping temporary Nginx server..."
-    docker compose -f docker-compose.prod.yml down nginx
-
-    echo "♻️ Restoring production Nginx configuration..."
-    mv nginx/nginx.conf.bak nginx/nginx.conf
 fi
 
 # 4. Start all services in production mode
