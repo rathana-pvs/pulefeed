@@ -31,6 +31,8 @@ services:
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
       NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-Pulefeed}
       NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID}
+    volumes:
+      - pulefeed_media_data:/app/public/media
     networks:
       - internal
       - web
@@ -69,5 +71,6 @@ networks:
 
 volumes:
   pulefeed_db_data:
+  pulefeed_media_data:
   certbot_www:
   certbot_certs:
