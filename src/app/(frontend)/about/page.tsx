@@ -54,7 +54,7 @@ export default async function AboutPage() {
     { year: '2016', event: 'Won the South-East Asia Press Freedom Award for investigative reporting on electoral irregularities.' },
     { year: '2019', event: 'Introduced bilingual coverage, expanding the reach to a new generation of readers.' },
     { year: '2022', event: 'Reached 100,000 daily active readers. Launched our dedicated Data & Analysis desk.' },
-    { year: '2025', event: 'Launched our digital platform, bringing pulefeed.com to readers worldwide.' },
+    { year: '2025', event: 'Launched our digital platform, bringing pulefeed.tech to readers worldwide.' },
   ]
 
   return (

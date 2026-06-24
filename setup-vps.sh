@@ -33,13 +33,13 @@ echo "🔒 Checking SSL Certificates..."
 # Find any volume matching "certbot_certs" to make it directory-agnostic
 VOLUME_NAME=$(docker volume ls -q | grep certbot_certs | head -n 1)
 
-if [ -n "$VOLUME_NAME" ] && docker run --rm -v "$VOLUME_NAME":/etc/letsencrypt alpine ls /etc/letsencrypt/live/pulefeed.com/fullchain.pem >/dev/null 2>&1; then
+if [ -n "$VOLUME_NAME" ] && docker run --rm -v "$VOLUME_NAME":/etc/letsencrypt alpine ls /etc/letsencrypt/live/pulefeed.tech/fullchain.pem >/dev/null 2>&1; then
     echo -e "${GREEN}✓ SSL Certificates already exist. Skipping certificate generation.${NC}"
 else
     echo "⚠️ SSL Certificates not found. Initiating Let's Encrypt SSL Bootstrap..."
 
     # Fallback email for SSL registration
-    EMAIL="admin@pulefeed.com"
+    EMAIL="admin@pulefeed.tech"
 
     # Backup original nginx.conf
     cp nginx/nginx.conf nginx/nginx.conf.bak
@@ -54,7 +54,7 @@ http {
     include /etc/nginx/mime.types;
     server {
         listen 80;
-        server_name pulefeed.com www.pulefeed.com;
+        server_name pulefeed.tech www.pulefeed.tech;
         location /.well-known/acme-challenge/ {
             root /var/www/certbot;
         }
@@ -73,8 +73,8 @@ EOF
     docker compose -f docker-compose.prod.yml run --rm --entrypoint "certbot" certbot certonly \
       --webroot \
       -w /var/www/certbot \
-      -d pulefeed.com \
-      -d www.pulefeed.com \
+      -d pulefeed.tech \
+      -d www.pulefeed.tech \
       --email "$EMAIL" \
       --agree-tos \
       --no-eff-email
@@ -90,4 +90,4 @@ fi
 echo "⚡ Starting all services..."
 docker compose -f docker-compose.prod.yml up -d db app nginx
 
-echo -e "${GREEN}✅ Setup complete! Pulefeed is now running at https://pulefeed.com${NC}"
+echo -e "${GREEN}✅ Setup complete! Pulefeed is now running at https://pulefeed.tech${NC}"

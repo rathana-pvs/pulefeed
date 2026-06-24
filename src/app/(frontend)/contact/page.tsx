@@ -36,7 +36,7 @@ export default async function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-mono font-bold text-xs uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--accent-red)' }}>General Inquiries</h3>
-                  <p className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>hello@pulefeed.com</p>
+                  <p className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>hello@pulefeed.tech</p>
                 </div>
               </div>
 
@@ -46,7 +46,7 @@ export default async function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-mono font-bold text-xs uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--accent-red)' }}>Legal & Privacy</h3>
-                  <p className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>legal@pulefeed.com</p>
+                  <p className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>legal@pulefeed.tech</p>
                 </div>
               </div>
 

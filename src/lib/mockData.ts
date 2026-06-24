@@ -9,7 +9,7 @@ export const mockAuthors: Partial<Author>[] = [
     bio: 'Sophea Chan has covered politics for over 15 years, specializing in electoral systems and parliamentary affairs.',
     avatar: { id: 'media-a1', filename: 'sophea.jpg', url: 'https://picsum.photos/seed/sophea/200/200', alt: 'Sophea Chan' } as any,
     twitter: 'sophea_pulefeed',
-    email: 'sophea@pulefeed.com',
+    email: 'sophea@pulefeed.tech',
   },
   {
     id: 'author-2',
@@ -19,7 +19,7 @@ export const mockAuthors: Partial<Author>[] = [
     bio: 'Dara Pich leads Pulefeed\'s international desk, reporting on ASEAN diplomacy and global geopolitics.',
     avatar: { id: 'media-a2', filename: 'dara.jpg', url: 'https://picsum.photos/seed/dara/200/200', alt: 'Dara Pich' } as any,
     twitter: 'dara_pulefeed',
-    email: 'dara@pulefeed.com',
+    email: 'dara@pulefeed.tech',
   },
   {
     id: 'author-3',
@@ -29,7 +29,7 @@ export const mockAuthors: Partial<Author>[] = [
     bio: 'Maly Ros leads data investigations, turning complex datasets into compelling public-interest stories.',
     avatar: { id: 'media-a3', filename: 'maly.jpg', url: 'https://picsum.photos/seed/maly/200/200', alt: 'Maly Ros' } as any,
     twitter: 'maly_pulefeed',
-    email: 'maly@pulefeed.com',
+    email: 'maly@pulefeed.tech',
   },
 ]
 

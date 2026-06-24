@@ -73,7 +73,7 @@ export default async function PrivacyPage() {
           <section>
             <h2 className="font-mono font-bold text-xs uppercase tracking-[0.3em] mb-4" style={{ color: 'var(--accent-red)' }}>4. Your Rights</h2>
             <p>
-              You have the right to access, correct, or delete any personal information we hold about you. For any privacy-related requests, please contact our data protection officer at <span className="font-bold border-b border-[var(--accent-red)]" style={{ color: 'var(--text-primary)' }}>privacy@pulefeed.com</span>.
+              You have the right to access, correct, or delete any personal information we hold about you. For any privacy-related requests, please contact our data protection officer at <span className="font-bold border-b border-[var(--accent-red)]" style={{ color: 'var(--text-primary)' }}>privacy@pulefeed.tech</span>.
             </p>
           </section>
 

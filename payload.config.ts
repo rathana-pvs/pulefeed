@@ -86,12 +86,12 @@ export default buildConfig({
   serverURL: siteUrl,
   cors: [
     siteUrl,
-    'https://pulefeed.com',
-    'https://www.pulefeed.com',
+    'https://pulefeed.tech',
+    'https://www.pulefeed.tech',
   ],
   csrf: [
     siteUrl,
-    'https://pulefeed.com',
-    'https://www.pulefeed.com',
+    'https://pulefeed.tech',
+    'https://www.pulefeed.tech',
   ],
 })

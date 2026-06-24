@@ -201,7 +201,7 @@ export default async function Image({ params }: Props) {
                 letterSpacing: '0.5px',
               }}
             >
-              pulefeed.com
+              pulefeed.tech
             </span>
           </div>
         </div>

@@ -48,11 +48,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'pulefeed.com',
+        hostname: 'pulefeed.tech',
       },
       {
         protocol: 'https',
-        hostname: 'www.pulefeed.com',
+        hostname: 'www.pulefeed.tech',
       },
     ],
   },

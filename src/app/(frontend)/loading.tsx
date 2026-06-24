@@ -13,7 +13,7 @@ export default function Loading() {
       
       <div className="text-center">
         <h2 className="font-display text-2xl font-bold mb-2 animate-pulse" style={{ color: 'var(--text-primary)' }}>
-          pulefeed.com
+          pulefeed.tech
         </h2>
         <p className="label-caps text-[10px] tracking-[0.3em]" style={{ color: 'var(--accent-gold)' }}>
           Retrieving Briefing...

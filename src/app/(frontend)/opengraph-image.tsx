@@ -125,7 +125,7 @@ export default function Image() {
             fontSize: '18px',
           }}
         >
-          pulefeed.com
+          pulefeed.tech
         </div>
 
         {/* Red accent line bottom */}

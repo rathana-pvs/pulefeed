@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getPayloadClient()
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pulefeed.com'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pulefeed.tech'
 
   // Static pages
   const staticPages = ['', '/about', '/contact', '/privacy', '/live', '/search']
