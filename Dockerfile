@@ -40,6 +40,7 @@ COPY --from=builder /app/next.config.mjs  ./next.config.mjs
 COPY --from=builder /app/package.json     ./package.json
 COPY --from=builder /app/payload.config.ts ./payload.config.ts
 COPY --from=builder /app/payload-types.ts  ./payload-types.ts
+COPY --from=builder /app/tsconfig.json     ./tsconfig.json
 
 # Next.js standalone output (set output: 'standalone' in next.config is optional;
 # here we copy the whole .next + node_modules for simplicity on a single droplet)
