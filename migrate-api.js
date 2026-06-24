@@ -1,5 +1,5 @@
 /**
- * Standalone Al Jazeera News API Migration Script (Dynamic Scraper + Image Downloader)
+ * Standalone Al Jazeera News API Migration Script (Dynamic Scraper + Full Content)
  * Runs locally or on the VPS using standard Node.js (no dependencies needed).
  * 
  * Usage:
@@ -59,6 +59,58 @@ async function fetchOgImage(url) {
     console.error(`  ⚠️ Failed to fetch og:image for ${url}:`, err.message);
   }
   return null;
+}
+
+// Helper to scrape full article paragraphs
+async function fetchFullContent(url, fallbackText) {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    if (!res.ok) return [fallbackText];
+    const html = await res.text();
+    
+    const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+    let match;
+    const paragraphs = [];
+    while ((match = pRegex.exec(html)) !== null) {
+      const text = match[1]
+        .replace(/<[^>]*>/g, '') // remove inner HTML tags (e.g. links, formats)
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#8217;/g, "'")
+        .replace(/&#8216;/g, "'")
+        .trim();
+      
+      // Filter out non-article paragraphs
+      if (
+        text.length > 60 && 
+        !text.includes('Navigation menu') &&
+        !text.includes('Show more sections') &&
+        !text.includes('Published On') &&
+        !text.includes('caret-left') &&
+        !text.includes('caret-right') &&
+        !text.includes('xwhatsapp-strokecopylink') &&
+        !text.includes('Sign up') &&
+        !text.startsWith('By ') &&
+        !text.startsWith('Listen to this article') &&
+        !text.includes('Code of Ethics') &&
+        !text.includes('ConnectConnect') &&
+        !text.includes('Our Channels') &&
+        !text.includes('Advertisement AboutAbout')
+      ) {
+        paragraphs.push(text);
+      }
+    }
+    
+    return paragraphs.length > 0 ? paragraphs : [fallbackText];
+  } catch (err) {
+    console.error(`  ⚠️ Failed to fetch full content for ${url}:`, err.message);
+    return [fallbackText];
+  }
 }
 
 async function main() {
@@ -254,6 +306,11 @@ async function main() {
       const mediaDoc = await mediaRes.json();
       const newMediaId = mediaDoc.doc.id;
 
+      // Scrape the full content text paragraphs
+      console.log(`   Scraping full content text...`);
+      const paragraphs = await fetchFullContent(item.link, item.description);
+      console.log(`   ✓ Found ${paragraphs.length} paragraphs`);
+
       const tags = [
         { tag: item.category.toLowerCase() },
         { tag: 'aljazeera' }
@@ -273,15 +330,13 @@ async function main() {
             format: '',
             indent: 0,
             version: 1,
-            children: [
-              {
-                type: 'paragraph',
-                format: '',
-                indent: 0,
-                version: 1,
-                children: [{ type: 'text', text: item.description, version: 1 }],
-              },
-            ],
+            children: paragraphs.map(pText => ({
+              type: 'paragraph',
+              format: '',
+              indent: 0,
+              version: 1,
+              children: [{ type: 'text', text: pText, version: 1 }],
+            })),
           },
         },
         status: 'published',

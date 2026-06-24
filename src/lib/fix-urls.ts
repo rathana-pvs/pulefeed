@@ -3,7 +3,8 @@ import config from '../../payload.config'
 
 const fixUrls = async () => {
   const payload = await getPayload({ config })
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+  const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
 
   console.log('Fixing Media URLs to be absolute...')
   const media = await payload.find({

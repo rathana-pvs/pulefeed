@@ -20,7 +20,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV PAYLOAD_SECRET=build-time-secret-replace-at-runtime
 ENV DATABASE_URI=postgresql://placeholder:placeholder@placeholder:5432/placeholder
-ENV NEXT_PUBLIC_SITE_URL=https://placeholder.com
+ENV NEXT_PUBLIC_SITE_URL=https://pulefeed.tech
 
 RUN npm run build
 

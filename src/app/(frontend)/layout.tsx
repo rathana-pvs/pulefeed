@@ -7,7 +7,8 @@ import { getBreakingArticles } from '@/lib/api-server'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { NavigationProgress } from '@/components/layout/NavigationProgress'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pulefeed.tech'
+const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

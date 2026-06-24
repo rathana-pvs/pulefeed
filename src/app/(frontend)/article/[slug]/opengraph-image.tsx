@@ -17,8 +17,20 @@ export default async function Image({ params }: Props) {
   const title = article?.title || 'Pulefeed Article'
   const excerpt = article?.excerpt || ''
   const authorName = article?.author?.name || 'Pulefeed Staff'
-  const coverUrl =
+  let coverUrl =
     typeof article?.coverImage === 'object' ? (article.coverImage as any)?.url : null
+
+  // Ensure coverUrl is an absolute URL for Satori image fetching
+  if (coverUrl) {
+    if (coverUrl.startsWith('//')) {
+      coverUrl = `https:${coverUrl}`
+    } else if (coverUrl.startsWith('/')) {
+      const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+      const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
+      const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
+      coverUrl = `${normalizedSiteUrl}${coverUrl}`
+    }
+  }
 
   // Truncate title if too long
   const displayTitle = title.length > 80 ? title.slice(0, 77) + '…' : title

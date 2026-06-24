@@ -26,7 +26,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = await getArticle(slug)
   if (!article) return { title: 'Article Not Found' }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pulefeed.tech'
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+  const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
   const title = article.meta?.title || article.title
   const description = article.meta?.description || article.excerpt
 
@@ -56,7 +57,8 @@ export const revalidate = 5
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pulefeed.tech'
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+  const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
   
   const article = await getArticle(slug)
   if (!article) notFound()
