@@ -54,6 +54,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.pulefeed.tech',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.aljazeera.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aljazeera.com',
+      },
     ],
   },
 }
