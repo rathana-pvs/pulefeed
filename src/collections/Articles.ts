@@ -90,7 +90,17 @@ export const Articles: CollectionConfig = {
       unique: true,
       admin: { position: 'sidebar', description: 'Auto-generated from title.' },
     },
-    { name: 'excerpt', type: 'textarea', required: true, maxLength: 160 },
+    {
+      name: 'shareLink',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/src/components/admin/ShareLinkField#ShareLinkField',
+        },
+      },
+    },
+    { name: 'excerpt', type: 'textarea', required: true, maxLength: 250 },
     { 
       name: 'content', 
       type: 'richText', 
@@ -115,10 +125,10 @@ export const Articles: CollectionConfig = {
         { label: 'Published', value: 'published' },
         { label: 'Archived', value: 'archived' },
       ],
-      defaultValue: 'draft',
+      defaultValue: 'published',
       admin: { position: 'sidebar' },
     },
-    { name: 'isBreaking', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' } },
+    { name: 'isBreaking', type: 'checkbox', defaultValue: true, admin: { position: 'sidebar' } },
     { name: 'isFeatured', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' } },
     {
       name: 'publishedAt',
