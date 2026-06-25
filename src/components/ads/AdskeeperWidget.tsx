@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 interface AdskeeperWidgetProps {
   widgetId: string
@@ -61,10 +61,20 @@ const MOCK_ADS = [
 ]
 
 export default function AdskeeperWidget({ widgetId, className = '', adType }: AdskeeperWidgetProps) {
-
-
-
+  const [mounted, setMounted] = useState(false)
   const isDev = process.env.NODE_ENV === 'development'
+
+  useEffect(() => {
+    setMounted(true)
+    if (isDev) return
+
+    try {
+      window._mgq = window._mgq || []
+      window._mgq.push(['_mgc.load'])
+    } catch (e) {
+      console.error('Error triggering Adskeeper load:', e)
+    }
+  }, [widgetId, isDev])
 
   if (isDev) {
     // Sidebar Widget — sticky vertical native ad column
@@ -263,11 +273,13 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
 
   return (
     <div className={`adskeeper-widget-container my-10 w-full flex justify-center ${className}`}>
-      <div 
-        data-type="_mgwidget" 
-        data-widget-id={widgetId}
-        style={{ width: '100%', minHeight: '200px' }}
-      />
+      {mounted && (
+        <div 
+          data-type="_mgwidget" 
+          data-widget-id={widgetId}
+          style={{ width: '100%', minHeight: '200px' }}
+        />
+      )}
     </div>
   )
 }
