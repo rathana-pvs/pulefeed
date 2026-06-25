@@ -61,29 +61,8 @@ const MOCK_ADS = [
 ]
 
 export default function AdskeeperWidget({ widgetId, className = '', adType }: AdskeeperWidgetProps) {
-  const isLoaded = useRef(false)
 
-  useEffect(() => {
-    // Avoid double-running queue push in React StrictMode
-    if (isLoaded.current) return
-    isLoaded.current = true
 
-    // 1. Initialize the global queue if not present
-    window._mgq = window._mgq || []
-    
-    // 2. Push the load command
-    window._mgq.push(["_mgc.load"])
-
-    // 3. Load the primary site loader script dynamically if it doesn't exist
-    const scriptId = 'adskeeper-loader-1101571'
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script')
-      script.id = scriptId
-      script.src = 'https://jsc.adskeeper.com/site/1101571.js'
-      script.async = true
-      document.body.appendChild(script)
-    }
-  }, [widgetId])
 
   const isDev = process.env.NODE_ENV === 'development'
 
