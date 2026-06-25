@@ -1,4 +1,5 @@
 import { ShareLinkField as ShareLinkField_9966f8dd25f32b97a08a78cf58aab133 } from '../../../../src/components/admin/ShareLinkField'
+import { ConfirmLeave as ConfirmLeave_ffc68839d4434d04601eb7745244953d } from '../../../../src/components/admin/ConfirmLeave'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -32,6 +33,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 export const importMap = {
   "/src/components/admin/ShareLinkField#ShareLinkField": ShareLinkField_9966f8dd25f32b97a08a78cf58aab133,
+  "/src/components/admin/ConfirmLeave#ConfirmLeave": ConfirmLeave_ffc68839d4434d04601eb7745244953d,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

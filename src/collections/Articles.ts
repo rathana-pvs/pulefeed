@@ -100,6 +100,15 @@ export const Articles: CollectionConfig = {
         },
       },
     },
+    {
+      name: 'confirmLeave',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/src/components/admin/ConfirmLeave#ConfirmLeave',
+        },
+      },
+    },
     { name: 'excerpt', type: 'textarea', required: true, maxLength: 250 },
     { 
       name: 'content', 
