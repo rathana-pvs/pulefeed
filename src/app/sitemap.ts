@@ -37,8 +37,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemapEntries.push({
       url: `${siteUrl}/article/${article.slug}`,
       lastModified: new Date(article.updatedAt),
-      changeFrequency: 'monthly',
-      priority: 0.6,
+      changeFrequency: 'daily',  // news articles update frequently
+      priority: 0.8,             // same weight as key static pages
     })
   })
 

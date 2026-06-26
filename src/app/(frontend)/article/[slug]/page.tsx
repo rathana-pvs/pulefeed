@@ -8,8 +8,8 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-// Use dynamic rendering
-export const dynamic = 'force-dynamic'
+// ISR: revalidate every 5 seconds — do NOT combine with force-dynamic
+// (force-dynamic disables caching entirely, which hurts TTFB and Core Web Vitals)
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
@@ -57,14 +57,30 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const heroImage = article.coverImage?.url || 'https://picsum.photos/seed/article/1400/900'
 
+  const keywords = article.tags?.map((t) => t.tag).join(', ') ?? ''
+  const articleSection = article.tags?.[0]?.tag ?? 'News'
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${siteUrl}/article/${slug}`,
+    },
     headline: article.title,
     description: article.excerpt,
-    image: [heroImage],
+    image: [
+      {
+        '@type': 'ImageObject',
+        url: heroImage,
+        width: article.coverImage?.width ?? 1400,
+        height: article.coverImage?.height ?? 900,
+      },
+    ],
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,
+    articleSection,
+    keywords,
     author: [{
       '@type': 'Person',
       name: article.author?.name || 'Pulefeed Staff',
@@ -73,6 +89,7 @@ export default async function ArticlePage({ params }: PageProps) {
     publisher: {
       '@type': 'Organization',
       name: 'Pulefeed',
+      url: siteUrl,
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,

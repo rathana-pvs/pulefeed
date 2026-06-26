@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface AdskeeperWidgetProps {
   widgetId: string
@@ -61,19 +61,37 @@ const MOCK_ADS = [
 ]
 
 export default function AdskeeperWidget({ widgetId, className = '', adType }: AdskeeperWidgetProps) {
-  const [mounted, setMounted] = useState(false)
   const isDev = process.env.NODE_ENV === 'development'
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setMounted(true)
-    if (isDev) return
+    if (isDev || !containerRef.current) return
 
-    try {
-      window._mgq = window._mgq || []
-      window._mgq.push(['_mgc.load'])
-    } catch (e) {
-      console.error('Error triggering Adskeeper load:', e)
-    }
+    // Viewability-first lazy loading:
+    // Fire _mgc.load ONLY when this widget container is about to enter the
+    // viewport (200px pre-load margin). This guarantees every ad request
+    // corresponds to a real viewable impression → maximises "Views with
+    // Visibility" in the Adskeeper dashboard.
+    const el = containerRef.current
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect()
+          // rAF ensures the slot <div> is painted before Adskeeper scans
+          requestAnimationFrame(() => {
+            try {
+              window._mgq = window._mgq || []
+              window._mgq.push(['_mgc.load'])
+            } catch (e) {
+              console.error('Adskeeper load error:', e)
+            }
+          })
+        }
+      },
+      { rootMargin: '200px 0px' } // start filling 200px before viewport
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [widgetId, isDev])
 
   if (isDev) {
@@ -164,6 +182,38 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
       )
     }
 
+
+    if (widgetId === '2044156') {
+      // In-Article Mid (second injection, long reads) — same layout as 2043077
+      // but uses different mock ads so both slots are distinguishable in dev.
+      return (
+        <div className={`ads-container border border-dashed border-[var(--border)] bg-[var(--bg-card)] rounded-md p-6 my-8 ${className}`}>
+          <span className="text-[9px] font-mono uppercase tracking-[0.2em] opacity-40 block text-center mb-4">
+            [Local Test Mode] Adskeeper In-Article Mid ({widgetId})
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {MOCK_ADS.slice(2, 4).map((ad) => (
+              <article key={ad.id} className="group flex gap-3 border-b border-[var(--border)] pb-4 last:border-0 last:pb-0 cursor-pointer transition-all">
+                <div className="relative flex-shrink-0 overflow-hidden rounded" style={{ width: 100, height: 72 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={ad.image} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="flex flex-col justify-between min-w-0 py-0.5">
+                  <h3 className="font-card-title leading-tight line-clamp-3 text-sm text-[var(--text-primary)]">
+                    <span className="underline-hover pb-[2px]">{ad.title}</span>
+                  </h3>
+                  <div className="font-mono flex items-center gap-2 mt-1" style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
+                    <span className="uppercase text-[var(--accent-red)] font-bold">Sponsored</span>
+                    <span>·</span>
+                    <span className="truncate">{ad.brand}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )
+    }
 
 
     if (widgetId === '2043079') {
@@ -272,14 +322,19 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
   }
 
   return (
-    <div className={`adskeeper-widget-container my-10 w-full flex justify-center ${className}`}>
-      {mounted && (
-        <div 
-          data-type="_mgwidget" 
-          data-widget-id={widgetId}
-          style={{ width: '100%', minHeight: '200px' }}
-        />
-      )}
+    <div
+      ref={containerRef}
+      className={`adskeeper-widget-container my-10 w-full flex justify-center ${className}`}
+    >
+      {/* Widget slot — rendered immediately so Adskeeper always finds it
+          when the IntersectionObserver fires _mgc.load. No hydration gate
+          needed; suppressHydrationWarning handles SSR/client mismatch. */}
+      <div
+        suppressHydrationWarning
+        data-type="_mgwidget"
+        data-widget-id={widgetId}
+        style={{ width: '100%', minHeight: '200px' }}
+      />
     </div>
   )
 }

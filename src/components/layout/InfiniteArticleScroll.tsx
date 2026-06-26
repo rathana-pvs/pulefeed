@@ -28,6 +28,18 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
   const loadedIds = useRef<(string | number)[]>([initialArticle.id])
   const observerTargetRef = useRef<HTMLDivElement>(null)
 
+  // Track breakpoint in JS so only ONE instance of widget 2043076 is ever
+  // mounted in the DOM at a time (CSS-only hiding still renders both divs,
+  // which causes Adskeeper to find duplicate slot IDs and fill both).
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    setIsDesktop(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
   // Fetch consecutive published articles client-side
   const loadNextArticles = async () => {
     if (loading || !hasMore) return
@@ -204,7 +216,11 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
                   {/* Rich Text Body */}
                   <div className="article-body prose prose-invert prose-lg max-w-none mb-12">
                     {article.content ? (
-                      <RichText content={article.content} adWidgetId="2043077" />
+                      <RichText
+                        content={article.content}
+                        adWidgetId="2043077"
+                        secondAdWidgetId="2044156"
+                      />
                     ) : (
                       <p className="text-xl leading-relaxed mt-4 italic opacity-50">
                         {dict.comingSoon}
@@ -247,16 +263,24 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
                   )}
                 </div>
 
-                {/* Sidebar */}
-                <aside className="hidden lg:block lg:col-span-4">
-                  <div className="sticky top-24">
-                    {/* Sidebar Widget (2043076) */}
-                    <AdskeeperWidget
-                      widgetId="2043076"
-                      adType="sidebar"
-                    />
+                {/* Widget 2043076 — only ONE instance in the DOM at a time.
+                    isDesktop===null means we haven't measured yet (SSR),
+                    so we render nothing and let the effect decide. */}
+                {isDesktop === true && (
+                  <aside className="lg:col-span-4">
+                    <div className="sticky top-24">
+                      <AdskeeperWidget
+                        widgetId="2043076"
+                        adType="sidebar"
+                      />
+                    </div>
+                  </aside>
+                )}
+                {isDesktop === false && (
+                  <div className="col-span-1 mt-2">
+                    <AdskeeperWidget widgetId="2043076" />
                   </div>
-                </aside>
+                )}
               </div>
 
 
