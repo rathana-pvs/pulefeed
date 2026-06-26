@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface AdskeeperWidgetProps {
   widgetId: string
@@ -60,19 +60,42 @@ const MOCK_ADS = [
   }
 ]
 
+// Module-level flag: _mgc.load must only fire ONCE per page session.
+// Calling it per-widget causes Adskeeper to treat the second+ calls as
+// duplicates and silently skip already-scanned slots (e.g. widget 2044156).
+// Instead, the FIRST widget to enter the viewport triggers the global scan;
+// Adskeeper then fills all slots — including below-fold ones — on its own.
+let mgcLoadFired = false
+
 export default function AdskeeperWidget({ widgetId, className = '', adType }: AdskeeperWidgetProps) {
   const isDev = process.env.NODE_ENV === 'development'
   const containerRef = useRef<HTMLDivElement>(null)
+  const slotRef = useRef<HTMLDivElement>(null)
+  const [filled, setFilled] = useState<boolean | null>(null) // null = pending
 
   useEffect(() => {
-    if (isDev || !containerRef.current) return
+    if (isDev || !containerRef.current || !slotRef.current) return
+
+    const el = containerRef.current
+    const slotEl = slotRef.current
+
+    // ResizeObserver: detect when Adskeeper fills the slot with content.
+    // If the slot height stays 0 after load fires, hide the container so
+    // it doesn't leave a blank gap on the page.
+    const resizeObs = new ResizeObserver(() => {
+      const h = slotEl.offsetHeight
+      if (h > 0) {
+        setFilled(true)
+        resizeObs.disconnect()
+      }
+    })
+    resizeObs.observe(slotEl)
 
     // Viewability-first lazy loading:
     // Fire _mgc.load ONLY when this widget container is about to enter the
     // viewport (200px pre-load margin). This guarantees every ad request
     // corresponds to a real viewable impression → maximises "Views with
     // Visibility" in the Adskeeper dashboard.
-    const el = containerRef.current
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -80,18 +103,38 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
           // rAF ensures the slot <div> is painted before Adskeeper scans
           requestAnimationFrame(() => {
             try {
-              window._mgq = window._mgq || []
-              window._mgq.push(['_mgc.load'])
+              // Only call _mgc.load once across ALL widget instances.
+              // Adskeeper scans every [data-type="_mgwidget"] in the DOM on
+              // this single call — subsequent calls are no-ops in its internal
+              // queue, causing below-fold slots like 2044156 to never fill.
+              if (!mgcLoadFired) {
+                mgcLoadFired = true
+                window._mgq = window._mgq || []
+                window._mgq.push(['_mgc.load'])
+              }
             } catch (e) {
               console.error('Adskeeper load error:', e)
             }
+            // After a generous timeout, if still empty → hide the container
+            setTimeout(() => {
+              setFilled((prev) => {
+                if (prev === null) {
+                  resizeObs.disconnect()
+                  return false // unfilled → hide
+                }
+                return prev
+              })
+            }, 4000)
           })
         }
       },
       { rootMargin: '200px 0px' } // start filling 200px before viewport
     )
     observer.observe(el)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      resizeObs.disconnect()
+    }
   }, [widgetId, isDev])
 
   if (isDev) {
@@ -321,6 +364,9 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
     )
   }
 
+  // filled=false means Adskeeper never filled the slot → render nothing
+  if (filled === false) return null
+
   return (
     <div
       ref={containerRef}
@@ -328,12 +374,15 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
     >
       {/* Widget slot — rendered immediately so Adskeeper always finds it
           when the IntersectionObserver fires _mgc.load. No hydration gate
-          needed; suppressHydrationWarning handles SSR/client mismatch. */}
+          needed; suppressHydrationWarning handles SSR/client mismatch.
+          No minHeight: if Adskeeper doesn't fill this, it collapses to 0
+          instead of leaving a blank gap on the page. */}
       <div
+        ref={slotRef}
         suppressHydrationWarning
         data-type="_mgwidget"
         data-widget-id={widgetId}
-        style={{ width: '100%', minHeight: '200px' }}
+        style={{ width: '100%' }}
       />
     </div>
   )
