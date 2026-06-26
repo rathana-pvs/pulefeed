@@ -1,6 +1,6 @@
 import { getPayload } from 'payload';
 import config from '../../payload.config';
-import slugify from 'slugify';
+import { slugify } from '../lib/utils';
 
 // Helper to scrape the og:image from an article URL
 async function fetchOgImage(url: string): Promise<string | null> {
@@ -128,7 +128,7 @@ async function runMigration() {
   console.log(`📰 Migrating articles to DB...`);
   for (const item of items) {
     // Generate slugify
-    let slug = slugify.default ? slugify.default(item.title, { lower: true, strict: true }) : slugify(item.title, { lower: true, strict: true });
+    let slug = slugify(item.title);
     if (!slug) slug = `article-${Date.now()}`;
 
     const existingArticle = await payload.find({

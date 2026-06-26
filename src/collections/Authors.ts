@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import slugify from 'slugify'
+import { slugify } from '../lib/utils'
 
 export const Authors: CollectionConfig = {
   slug: 'authors',
@@ -17,7 +17,8 @@ export const Authors: CollectionConfig = {
     beforeChange: [
       async ({ data }) => {
         if (!data.slug && data.name) {
-          data.slug = slugify(data.name, { lower: true, strict: true })
+          const generatedSlug = slugify(data.name)
+          data.slug = generatedSlug || `author-${Date.now()}`
         }
         return data
       },

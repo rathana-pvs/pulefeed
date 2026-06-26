@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical'
 import { VideoEmbed } from '../blocks/VideoEmbed'
-import slugify from 'slugify'
+import { slugify } from '../lib/utils'
 import { revalidatePath } from 'next/cache'
 
 export const Articles: CollectionConfig = {
@@ -28,14 +28,8 @@ export const Articles: CollectionConfig = {
     beforeChange: [
       async ({ data }) => {
         if (!data.slug && data.title) {
-          // Note: slugify with strict:true returns "" for Khmer text.
-          let generatedSlug = slugify(data.title, { lower: true, strict: true })
+          const generatedSlug = slugify(data.title)
           
-          if (!generatedSlug) {
-            // Try less strict slugify
-            generatedSlug = slugify(data.title, { lower: true, strict: false })
-          }
-
           // Ensure slug is never empty
           data.slug = generatedSlug || `article-${Date.now()}`
         }

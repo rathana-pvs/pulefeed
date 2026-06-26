@@ -25,12 +25,16 @@ function parseArgs() {
 
 // Simple slugify helper
 function slugifyTitle(title) {
-  return title
+  if (!title) return '';
+  let slug = title
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // remove special characters
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .trim()
-    .replace(/\s+/g, '-')         // replace spaces with -
-    .replace(/-+/g, '-');         // remove duplicate hyphens
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  return slug || `article-${Date.now()}`;
 }
 
 // Helper to scrape the og:image from an article URL

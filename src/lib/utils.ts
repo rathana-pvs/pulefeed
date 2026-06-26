@@ -41,3 +41,16 @@ export function slugToTitle(slug: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
+
+export function slugify(text: string): string {
+  if (!text) return ''
+  return text
+    .toLowerCase()
+    .normalize('NFD') // splits accented characters into their base characters and diacritical marks
+    .replace(/[\u0300-\u036f]/g, '') // remove diacritical marks
+    .replace(/[^\p{L}\p{N}\s-]/gu, '') // keep letters, numbers, spaces, and hyphens
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
