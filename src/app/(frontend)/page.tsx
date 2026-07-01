@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Breaking news, parliament coverage, and deep investigations from Pulefeed.',
 }
 
+export const revalidate = 60
+
 export default async function HomePage() {
   const [{ hero, secondary }, allArticles] = await Promise.all([
     getFeatured(),

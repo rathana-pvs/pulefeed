@@ -57,6 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+export const revalidate = 60
+
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL

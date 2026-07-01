@@ -2,7 +2,12 @@ import { Article, PaginatedArticles } from '@/types'
 import { getPayloadClient } from './payload'
 import { unstable_cache } from 'next/cache'
 
-export const getArticles = unstable_cache(
+// Detect build time to bypass caching placeholder database responses
+const isBuildTime = 
+  !process.env.DATABASE_URI || 
+  process.env.DATABASE_URI.includes('placeholder')
+
+const cachedGetArticles = unstable_cache(
   async (params?: {
     limit?: number
     page?: number
@@ -44,7 +49,27 @@ export const getArticles = unstable_cache(
   { tags: ['articles'] }
 )
 
-export const getArticle = unstable_cache(
+export async function getArticles(params?: {
+  limit?: number
+  page?: number
+  where?: Record<string, any>
+}): Promise<PaginatedArticles> {
+  if (isBuildTime) {
+    return {
+      docs: [],
+      totalDocs: 0,
+      limit: params?.limit || 12,
+      totalPages: 1,
+      page: params?.page || 1,
+      pagingCounter: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+    } as unknown as PaginatedArticles
+  }
+  return cachedGetArticles(params)
+}
+
+const cachedGetArticle = unstable_cache(
   async (slug: string): Promise<Article | null> => {
     try {
       const payload = await getPayloadClient()
@@ -64,7 +89,14 @@ export const getArticle = unstable_cache(
   { tags: ['articles'] }
 )
 
-export const getFeatured = unstable_cache(
+export async function getArticle(slug: string): Promise<Article | null> {
+  if (isBuildTime) {
+    return null
+  }
+  return cachedGetArticle(slug)
+}
+
+const cachedGetFeatured = unstable_cache(
   async (): Promise<{ hero: Article | null; secondary: Article[] }> => {
     try {
       const payload = await getPayloadClient()
@@ -89,7 +121,14 @@ export const getFeatured = unstable_cache(
   { tags: ['articles'] }
 )
 
-export const getBreakingArticles = unstable_cache(
+export async function getFeatured(): Promise<{ hero: Article | null; secondary: Article[] }> {
+  if (isBuildTime) {
+    return { hero: null, secondary: [] }
+  }
+  return cachedGetFeatured()
+}
+
+const cachedGetBreakingArticles = unstable_cache(
   async (): Promise<Article[]> => {
     try {
       const payload = await getPayloadClient()
@@ -112,7 +151,14 @@ export const getBreakingArticles = unstable_cache(
   { tags: ['articles'] }
 )
 
-export const getRelatedArticles = unstable_cache(
+export async function getBreakingArticles(): Promise<Article[]> {
+  if (isBuildTime) {
+    return []
+  }
+  return cachedGetBreakingArticles()
+}
+
+const cachedGetRelatedArticles = unstable_cache(
   async (articleId: string | number): Promise<Article[]> => {
     try {
       const payload = await getPayloadClient()
@@ -136,3 +182,10 @@ export const getRelatedArticles = unstable_cache(
   ['related-articles'],
   { tags: ['articles'] }
 )
+
+export async function getRelatedArticles(articleId: string | number): Promise<Article[]> {
+  if (isBuildTime) {
+    return []
+  }
+  return cachedGetRelatedArticles(articleId)
+}
