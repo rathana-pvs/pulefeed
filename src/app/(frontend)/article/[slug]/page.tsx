@@ -1,11 +1,25 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getArticle, getRelatedArticles } from '@/lib/api-server'
+import { getArticle, getArticles, getRelatedArticles } from '@/lib/api-server'
 import { ReadingBar } from '@/components/ui/ReadingBar'
 import { InfiniteArticleScroll } from '@/components/layout/InfiniteArticleScroll'
 
 interface PageProps {
   params: Promise<{ slug: string }>
+}
+
+// Allow older articles not in generateStaticParams to be rendered on-demand and cached
+export const dynamicParams = true
+
+// Pre-generate the 30 most recent articles as static pages at deploy time
+export async function generateStaticParams() {
+  try {
+    const articles = await getArticles({ limit: 30 })
+    return articles.docs.map((a) => ({ slug: a.slug }))
+  } catch (error) {
+    console.warn('⚠️ Postgres connection failed in generateStaticParams (expected during build):', error)
+    return []
+  }
 }
 
 // ISR: revalidate every 5 seconds — do NOT combine with force-dynamic
@@ -42,8 +56,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   }
 }
-
-export const revalidate = 5
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params

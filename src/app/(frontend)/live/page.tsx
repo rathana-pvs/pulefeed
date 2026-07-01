@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   description: 'Follow breaking news and live parliamentary coverage from The Tribune.',
 }
 
-export const revalidate = 30
-
 export default async function LivePage() {
   const { docs: articles } = await getArticles({ limit: 5 })
 

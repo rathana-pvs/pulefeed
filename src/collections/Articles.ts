@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical'
 import { VideoEmbed } from '../blocks/VideoEmbed'
 import { slugify } from '../lib/utils'
-import { revalidatePath } from 'next/cache'
+import { revalidateTag } from 'next/cache'
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
@@ -58,15 +58,24 @@ export const Articles: CollectionConfig = {
       },
     ],
     afterChange: [
-      ({ doc, req }) => {
-        // Only revalidate if we are in a request context (prevents error during seeding)
+      async ({ doc }) => {
         try {
-          // Revalidate the home page
-          revalidatePath('/', 'layout')
-          
-          // Revalidate the specific article if it's published
-          if (doc.status === 'published') {
-            revalidatePath(`/article/${doc.slug}`)
+          // Clear all cached article queries (unstable_cache queries tagged with 'articles')
+          revalidateTag('articles')
+
+          // 🔥 Warm the cache immediately — fire-and-forget background fetches
+          // so pages are pre-built before the first real visitor arrives
+          if (doc.status === 'published' && doc.slug) {
+            const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+            const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'http://localhost:3000'
+
+            // Warm article page
+            fetch(`${siteUrl}/article/${doc.slug}`, { cache: 'no-store' })
+              .catch(() => {})
+
+            // Warm home page
+            fetch(`${siteUrl}/`, { cache: 'no-store' })
+              .catch(() => {})
           }
         } catch (e) {
           // Ignore revalidation errors during seeding/CLI
