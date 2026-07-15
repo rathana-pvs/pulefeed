@@ -33,8 +33,8 @@ export const AIAssistant: React.FC = () => {
     return () => clearTimeout(t)
   }, [])
 
-  const handleImport = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleImport = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
+    if (e) e.preventDefault()
     if (!scrapeUrlValue) return
 
     setStatus('loading')
@@ -290,13 +290,19 @@ export const AIAssistant: React.FC = () => {
               Enter an article URL below to fetch and fill the title, content, cover image, excerpt, and tags.
             </p>
 
-            <form onSubmit={handleImport} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <input
                 type="url"
                 required
                 placeholder="Paste article or blog link..."
                 value={scrapeUrlValue}
                 onChange={(e) => setScrapeUrlValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleImport(e)
+                  }
+                }}
                 disabled={isLoading}
                 style={{
                   width: '100%',
@@ -310,8 +316,9 @@ export const AIAssistant: React.FC = () => {
                 }}
               />
               <button
-                type="submit"
+                type="button"
                 className="import-btn"
+                onClick={handleImport}
                 disabled={isLoading || !scrapeUrlValue}
               >
                 {isLoading ? (
@@ -321,7 +328,7 @@ export const AIAssistant: React.FC = () => {
                   </>
                 ) : 'Import Link'}
               </button>
-            </form>
+            </div>
 
             {status === 'error' && (
               <div className="ai-result" style={{
