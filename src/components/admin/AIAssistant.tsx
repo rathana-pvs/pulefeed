@@ -107,22 +107,22 @@ export const AIAssistant: React.FC = () => {
 
   const applyField = (fieldName: string, value: any) => {
     if (fieldName === 'tags' && Array.isArray(value)) {
-      dispatchFields({ type: 'UPDATE', path: 'tags', value: value.map((tag: string) => ({ tag })) })
+      dispatchFields({ type: 'UPDATE', path: 'tags', value: value.map((tag: string) => ({ tag })), valid: true })
     } else if (fieldName === 'metaTitle') {
-      dispatchFields({ type: 'UPDATE', path: 'og.metaTitle', value })
-      dispatchFields({ type: 'UPDATE', path: 'meta.title', value })
+      dispatchFields({ type: 'UPDATE', path: 'og.metaTitle', value, valid: true })
+      dispatchFields({ type: 'UPDATE', path: 'meta.title', value, valid: true })
     } else if (fieldName === 'metaDescription') {
-      dispatchFields({ type: 'UPDATE', path: 'og.metaDescription', value })
-      dispatchFields({ type: 'UPDATE', path: 'meta.description', value })
+      dispatchFields({ type: 'UPDATE', path: 'og.metaDescription', value, valid: true })
+      dispatchFields({ type: 'UPDATE', path: 'meta.description', value, valid: true })
     } else if (fieldName === 'coverImage') {
-      dispatchFields({ type: 'UPDATE', path: 'coverImage', value })
-      dispatchFields({ type: 'UPDATE', path: 'og.ogImage', value })
-      dispatchFields({ type: 'UPDATE', path: 'meta.image', value })
+      dispatchFields({ type: 'UPDATE', path: 'coverImage', value, valid: true })
+      dispatchFields({ type: 'UPDATE', path: 'og.ogImage', value, valid: true })
+      dispatchFields({ type: 'UPDATE', path: 'meta.image', value, valid: true })
     } else if (fieldName === 'content' && typeof value === 'string') {
       const lexicalValue = convertTextToLexicalJson(value)
-      dispatchFields({ type: 'UPDATE', path: 'content', value: lexicalValue, initialValue: lexicalValue })
+      dispatchFields({ type: 'UPDATE', path: 'content', value: lexicalValue, initialValue: lexicalValue, valid: true })
     } else {
-      dispatchFields({ type: 'UPDATE', path: fieldName, value })
+      dispatchFields({ type: 'UPDATE', path: fieldName, value, valid: true })
     }
     setApplied(prev => ({ ...prev, [fieldName]: true }))
   }
