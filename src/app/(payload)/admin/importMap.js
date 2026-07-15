@@ -1,5 +1,5 @@
-import { ShareLinkField as ShareLinkField_9966f8dd25f32b97a08a78cf58aab133 } from '../../../../src/components/admin/ShareLinkField'
-import { ConfirmLeave as ConfirmLeave_ffc68839d4434d04601eb7745244953d } from '../../../../src/components/admin/ConfirmLeave'
+import { AIAssistant as AIAssistant_9112e446220d2962a82aa0b223a964ff } from '../../../../src/components/admin/AIAssistant'
+import { ShareLink as ShareLink_874491db10e6e195096e48e48b140801 } from '../../../../src/components/admin/ShareLink'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -32,8 +32,8 @@ import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 }
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
-  "/src/components/admin/ShareLinkField#ShareLinkField": ShareLinkField_9966f8dd25f32b97a08a78cf58aab133,
-  "/src/components/admin/ConfirmLeave#ConfirmLeave": ConfirmLeave_ffc68839d4434d04601eb7745244953d,
+  "/src/components/admin/AIAssistant#AIAssistant": AIAssistant_9112e446220d2962a82aa0b223a964ff,
+  "/src/components/admin/ShareLink#ShareLink": ShareLink_874491db10e6e195096e48e48b140801,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
