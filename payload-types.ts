@@ -71,6 +71,7 @@ export interface Config {
     authors: Author;
     media: Media;
     users: User;
+    'share-links': ShareLink;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'share-links': ShareLinksSelect<false> | ShareLinksSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -170,6 +172,11 @@ export interface Article {
    * Auto-calculated
    */
   readTime?: number | null;
+  og?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -356,6 +363,30 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Dynamic share links for article tracking and anti-spam.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "share-links".
+ */
+export interface ShareLink {
+  id: number;
+  /**
+   * Auto-generated 5-character unique key.
+   */
+  key?: string | null;
+  /**
+   * The target article for this share link.
+   */
+  article: number | Article;
+  /**
+   * Optional tag/label to identify this share link (e.g. "FB Group Comment A").
+   */
+  label?: string | null;
+  clicks?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -394,6 +425,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'share-links';
+        value: number | ShareLink;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -460,6 +495,13 @@ export interface ArticlesSelect<T extends boolean = true> {
   isFeatured?: T;
   publishedAt?: T;
   readTime?: T;
+  og?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
   meta?:
     | T
     | {
@@ -582,6 +624,18 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "share-links_select".
+ */
+export interface ShareLinksSelect<T extends boolean = true> {
+  key?: T;
+  article?: T;
+  label?: T;
+  clicks?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
