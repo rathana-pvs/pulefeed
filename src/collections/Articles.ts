@@ -40,19 +40,13 @@ export const Articles: CollectionConfig = {
           data.readTime = Math.max(1, Math.ceil(wordCount / 200))
         }
 
-        // Auto-populate SEO/meta fields if not explicitly input by the user
+        // Ensure meta (SEO plugin) group exists and sync fields
         if (!data.meta) {
           data.meta = {}
         }
-        if (!data.meta.title && data.title) {
-          data.meta.title = `${data.title} — Pulefeed`
-        }
-        if (!data.meta.description && data.excerpt) {
-          data.meta.description = data.excerpt
-        }
-        if (!data.meta.image && data.coverImage) {
-          data.meta.image = data.coverImage
-        }
+        data.meta.title = data.title
+        data.meta.description = data.excerpt
+        data.meta.image = data.coverImage
 
         return data
       },
@@ -92,6 +86,16 @@ export const Articles: CollectionConfig = {
       type: 'text',
       unique: true,
       admin: { position: 'sidebar', description: 'Auto-generated from title.' },
+    },
+    {
+      name: 'aiAssistant',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/src/components/admin/AIAssistant#AIAssistant',
+        },
+      },
     },
     {
       name: 'shareLink',
