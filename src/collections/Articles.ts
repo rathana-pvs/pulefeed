@@ -40,6 +40,14 @@ export const Articles: CollectionConfig = {
           data.readTime = Math.max(1, Math.ceil(wordCount / 200))
         }
 
+        // Ensure og group exists and sync fields
+        if (!data.og) {
+          data.og = {}
+        }
+        data.og.metaTitle = data.title
+        data.og.metaDescription = data.excerpt
+        data.og.ogImage = data.coverImage
+
         // Ensure meta (SEO plugin) group exists and sync fields
         if (!data.meta) {
           data.meta = {}
@@ -103,16 +111,7 @@ export const Articles: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: {
-          Field: '/src/components/admin/ShareLinkField#ShareLinkField',
-        },
-      },
-    },
-    {
-      name: 'confirmLeave',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '/src/components/admin/ConfirmLeave#ConfirmLeave',
+          Field: '/src/components/admin/ShareLink#ShareLink',
         },
       },
     },
@@ -153,5 +152,15 @@ export const Articles: CollectionConfig = {
       admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
     },
     { name: 'readTime', type: 'number', admin: { position: 'sidebar', description: 'Auto-calculated' } },
+    {
+      name: 'og',
+      label: 'OG',
+      type: 'group',
+      fields: [
+        { name: 'metaTitle', type: 'text' },
+        { name: 'metaDescription', type: 'textarea' },
+        { name: 'ogImage', type: 'upload', relationTo: 'media' },
+      ],
+    },
   ],
 }

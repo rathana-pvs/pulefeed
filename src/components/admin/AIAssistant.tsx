@@ -43,11 +43,13 @@ export const AIAssistant: React.FC = () => {
       // Auto-apply fields to form
       if (data.title) {
         dispatchFields({ type: 'UPDATE', path: 'title', value: data.title })
+        dispatchFields({ type: 'UPDATE', path: 'og.metaTitle', value: data.title })
         dispatchFields({ type: 'UPDATE', path: 'meta.title', value: data.title })
       }
       
       if (data.excerpt) {
         dispatchFields({ type: 'UPDATE', path: 'excerpt', value: data.excerpt })
+        dispatchFields({ type: 'UPDATE', path: 'og.metaDescription', value: data.excerpt })
         dispatchFields({ type: 'UPDATE', path: 'meta.description', value: data.excerpt })
       }
 
@@ -58,6 +60,7 @@ export const AIAssistant: React.FC = () => {
 
       if (data.coverImage) {
         dispatchFields({ type: 'UPDATE', path: 'coverImage', value: data.coverImage })
+        dispatchFields({ type: 'UPDATE', path: 'og.ogImage', value: data.coverImage })
         dispatchFields({ type: 'UPDATE', path: 'meta.image', value: data.coverImage })
       }
 

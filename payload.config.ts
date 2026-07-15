@@ -23,6 +23,7 @@ import { Articles } from './src/collections/Articles'
 import { Authors } from './src/collections/Authors'
 import { Media } from './src/collections/Media'
 import { Users } from './src/collections/Users'
+import { ShareLinks } from './src/collections/ShareLinks'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -39,7 +40,7 @@ export default buildConfig({
       titleSuffix: '— Pulefeed CMS',
     },
   },
-  collections: [Articles, Authors, Media, Users],
+  collections: [Articles, Authors, Media, Users, ShareLinks],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,
@@ -67,6 +68,35 @@ export default buildConfig({
       generateTitle: ({ doc }: { doc: any }) => doc?.title ? `${doc.title} — Pulefeed` : 'Pulefeed',
       generateDescription: ({ doc }: { doc: any }) => doc?.excerpt || '',
     }),
+    (config) => {
+      const articlesCollection = config.collections?.find((c) => c.slug === 'articles')
+      if (articlesCollection && articlesCollection.fields) {
+        const ogIndex = articlesCollection.fields.findIndex((f) => 'name' in f && f.name === 'og')
+        const metaIndex = articlesCollection.fields.findIndex((f) => 'name' in f && f.name === 'meta')
+        
+        if (ogIndex !== -1 && metaIndex !== -1) {
+          const ogField = articlesCollection.fields[ogIndex]
+          const metaField = articlesCollection.fields[metaIndex]
+          
+          articlesCollection.fields = articlesCollection.fields.filter(
+            (f) => !('name' in f && (f.name === 'og' || f.name === 'meta'))
+          )
+          
+          articlesCollection.fields.push({
+            type: 'collapsible',
+            label: 'Advanced (OG & SEO)',
+            admin: {
+              initCollapsed: true,
+            },
+            fields: [
+              ogField,
+              metaField,
+            ],
+          } as any)
+        }
+      }
+      return config
+    },
     ...(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
       ? [
           cloudinaryStorage({
