@@ -26,6 +26,15 @@ export interface MediaItem {
   externalUrl?: string
 }
 
+export interface Category {
+  id: string | number
+  name: string
+  slug: string
+  description?: string
+  color?: string
+  icon?: string
+}
+
 export interface Tag {
   tag: string
 }
@@ -38,6 +47,7 @@ export interface Article {
   content?: any
   coverImage: MediaItem
   credit?: string
+  category?: Category
   author?: Author
   tags?: Tag[]
   status: 'draft' | 'published' | 'archived'

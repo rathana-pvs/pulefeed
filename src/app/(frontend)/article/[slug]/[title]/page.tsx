@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getArticle, getRelatedArticles } from '@/lib/api-server'
 import { getPayloadClient } from '@/lib/payload'
+import { CategoryBadge } from '@/components/ui/CategoryBadge'
+import { AuthorChip } from '@/components/ui/AuthorChip'
 import { ReadingBar } from '@/components/ui/ReadingBar'
-import { InfiniteArticleScroll } from '@/components/layout/InfiniteArticleScroll'
+import { RichText } from '@/components/RichText'
+import AdskeeperWidget from '@/components/ads/AdskeeperWidget'
+import { RelatedArticles } from '@/components/article/RelatedArticles'
 
 interface PageProps {
   params: Promise<{ slug: string; title: string }>
@@ -13,7 +18,6 @@ interface PageProps {
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  // slug = tracking key, title = article slug
   const { slug: key, title: slug } = await params
   const article = await getArticle(slug)
   if (!article) return { title: 'Article Not Found' }
@@ -22,6 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
   const title = article.meta?.title || article.title
   const description = article.meta?.description || article.excerpt
+  const ogImageUrl = article.coverImage?.url
 
   return {
     title,
@@ -37,25 +42,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: 'Pulefeed',
       publishedTime: article.publishedAt ?? undefined,
       authors: [article.author?.name || 'Pulefeed Staff'],
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   }
 }
 
 export default async function DynamicArticlePage({ params }: PageProps) {
-  // slug = tracking key, title = article slug
   const { slug: key, title: slug } = await params
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL
   const siteUrl = envUrl && !envUrl.includes('placeholder.com') ? envUrl : 'https://pulefeed.tech'
   
+  const widgetSidebar = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_SIDEBAR || '2043076'
+  const widgetInArticle1 = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1 || '2043077'
+  const widgetInArticle2 = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_2 || '2044156'
+  const widgetFeed = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED || '2043075'
+  const widgetUnderArticle = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE || '2043079'
+  const widgetBottomFeed = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_BOTTOM_FEED || '2043075'
+
   const article = await getArticle(slug)
   if (!article) notFound()
 
-  const related = await getRelatedArticles(article.id)
+  const relatedArticles = await getRelatedArticles(article.id)
 
   // Track the click on the server side
   try {
@@ -87,8 +100,6 @@ export default async function DynamicArticlePage({ params }: PageProps) {
   }
 
   const heroImage = article.coverImage?.url || 'https://picsum.photos/seed/article/1400/900'
-  const keywords = article.tags?.map((t) => t.tag).join(', ') ?? ''
-  const articleSection = article.tags?.[0]?.tag ?? 'News'
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -109,8 +120,6 @@ export default async function DynamicArticlePage({ params }: PageProps) {
     ],
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,
-    articleSection,
-    keywords,
     author: [{
       '@type': 'Person',
       name: article.author?.name || 'Pulefeed Staff',
@@ -134,7 +143,126 @@ export default async function DynamicArticlePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ReadingBar />
-      <InfiniteArticleScroll initialArticle={article} initialRelated={related} />
+
+      {/* Editorial Article Header */}
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-3 sm:pt-6 pb-1">
+        <div className="max-w-[840px] mx-auto">
+          {/* Category & Breaking Badge */}
+          <div className="flex items-center gap-2 mb-2 sm:mb-3">
+            {article.category && (
+              <CategoryBadge name={article.category.name} size="md" />
+            )}
+            {article.isBreaking && (
+              <span className="font-mono font-bold text-[10px] uppercase tracking-[0.3em]" style={{ color: 'var(--accent-red)' }}>
+                 · BREAKING
+              </span>
+            )}
+          </div>
+
+          {/* Main Headline (NYT Playfair Serif Style) */}
+          <h1
+            className="article-title-nyt font-display font-black leading-tight mb-2 sm:mb-4 tracking-tighter"
+            style={{ fontSize: 'clamp(24px, 4.5vw, 42px)', color: 'var(--text-primary)' }}
+          >
+            {article.title}
+          </h1>
+
+          {/* Author & Date Chip */}
+          <div className="flex flex-wrap items-center gap-4 mb-3 sm:mb-6">
+             <AuthorChip
+                author={article.author || null}
+                date={article.publishedAt}
+                readTime={article.readTime}
+                size="lg"
+                className="article-hero-chip"
+              />
+          </div>
+
+          {/* Full Uncropped 16:9 Featured Image (Compact Mobile Height) */}
+          <div className="relative w-full aspect-video max-h-[190px] sm:max-h-none rounded-xl overflow-hidden mb-3 sm:mb-6 bg-[var(--bg-surface)] shadow-sm">
+            <Image
+              src={heroImage}
+              alt={article.coverImage?.alt || article.title}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 840px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Article Content Area */}
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-2 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-16">
+          
+          {/* Main Article Body */}
+          <div className="lg:col-span-8">
+            {/* Lead Excerpt (Executive Briefing Card Style) */}
+            {article.excerpt && (
+              <div 
+                className="border-l-4 border-[var(--accent-red)] pl-4 pr-4 py-3 mb-4 sm:mb-6 rounded-r-lg shadow-xs"
+                style={{ background: 'var(--accent-red-dim)' }}
+              >
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--accent-red)] mb-1 block font-sans">
+                  EXECUTIVE SUMMARY
+                </span>
+                <p
+                  className="article-excerpt-nyt text-base sm:text-lg leading-relaxed font-medium"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {article.excerpt}
+                </p>
+              </div>
+            )}
+
+            {/* Rich Text Body with Phased In-Article Ads */}
+            <div className="article-body prose prose-invert prose-lg max-w-none mb-4 sm:mb-12">
+              {article.content ? (
+                <RichText
+                  content={article.content}
+                  articleTitle={article.title}
+                  adWidgetId={widgetInArticle1}
+                  adWidgetId2={widgetInArticle2}
+                  feedWidgetId={widgetFeed}
+                />
+              ) : (
+                <p className="text-xl leading-relaxed mt-4 italic opacity-50">
+                  Content coming soon...
+                </p>
+              )}
+            </div>
+
+            {/* Attribution / Source */}
+            {article.credit && (
+               <div className="mb-12 py-6 border-t border-b border-[var(--border)] flex items-center gap-4">
+                  <span className="font-mono font-bold text-[9px] uppercase tracking-[0.2em]" style={{ color: 'var(--accent-red)' }}>
+                    SOURCE
+                  </span>
+                  <p className="font-mono text-xs italic" style={{ color: 'var(--text-muted)' }}>
+                    {article.credit}
+                  </p>
+               </div>
+            )}
+
+            {/* Under-article Native Recommendations Widget */}
+            <AdskeeperWidget widgetId={widgetUnderArticle} className="my-8" />
+
+            {/* Feed Bottom Content Widget - Inside main content column */}
+            <div className="mt-8 border-t border-[var(--border)] pt-4">
+               <AdskeeperWidget widgetId={widgetBottomFeed} className="!my-0" />
+            </div>
+          </div>
+
+          {/* Sidebar Area - Hidden on Mobile */}
+          <aside className="hidden lg:block lg:col-span-4 space-y-8">
+            <div className="sticky top-24 space-y-8">
+              {/* Related / Trending Sidebar Ad */}
+              <AdskeeperWidget widgetId={widgetSidebar} adType="sidebar" onlyShowOn="desktop" />
+            </div>
+          </aside>
+        </div>
+      </div>
     </>
   )
 }

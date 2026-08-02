@@ -6,6 +6,7 @@ interface AdskeeperWidgetProps {
   widgetId: string
   className?: string
   adType?: 'sidebar'
+  onlyShowOn?: string
 }
 
 // Simulated clickbait-style native advertisement mock data

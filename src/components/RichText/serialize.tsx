@@ -13,25 +13,26 @@ type Node = {
   [key: string]: any
 }
 
-export function serializeLexical(nodes: Node[]): JSX.Element[] {
+export function serializeLexical(nodes: Node[], keyPrefix: string = 'node'): JSX.Element[] {
   return nodes.map((node, i) => {
+    const nodeKey = `${keyPrefix}-${i}`
     if (node.type === 'text') {
-      let text = <Fragment key={i}>{node.text}</Fragment>
+      let text = <Fragment key={nodeKey}>{node.text}</Fragment>
 
       if ((node.format || 0) & 1) {
-        text = <strong key={i}>{text}</strong>
+        text = <strong key={nodeKey}>{text}</strong>
       }
       if ((node.format || 0) & 2) {
-        text = <em key={i}>{text}</em>
+        text = <em key={nodeKey}>{text}</em>
       }
       if ((node.format || 0) & 4) {
-        text = <u key={i}>{text}</u>
+        text = <u key={nodeKey}>{text}</u>
       }
       if ((node.format || 0) & 8) {
-        text = <s key={i}>{text}</s>
+        text = <s key={nodeKey}>{text}</s>
       }
       if ((node.format || 0) & 16) {
-        text = <code key={i}>{text}</code>
+        text = <code key={nodeKey}>{text}</code>
       }
 
       return text as any
@@ -41,37 +42,37 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
       return null
     }
 
-    const children = node.children ? serializeLexical(node.children) : null
+    const children = node.children ? serializeLexical(node.children, `${nodeKey}-c`) : null
 
     switch (node.type) {
       case 'h1':
         return (
-          <h1 key={i} className="font-display font-bold text-4xl mb-6 mt-10" style={{ color: 'var(--text-primary)' }}>
+          <h1 key={nodeKey} className="font-display font-bold text-4xl mb-6 mt-10" style={{ color: 'var(--text-primary)' }}>
             {children}
           </h1>
         )
       case 'h2':
         return (
-          <h2 key={i} className="font-display font-bold text-3xl mb-4 mt-10" style={{ color: 'var(--text-primary)' }}>
+          <h2 key={nodeKey} className="font-display font-bold text-3xl mb-4 mt-10" style={{ color: 'var(--text-primary)' }}>
             {children}
           </h2>
         )
       case 'h3':
         return (
-          <h3 key={i} className="font-display font-bold text-2xl mb-4 mt-8" style={{ color: 'var(--text-primary)' }}>
+          <h3 key={nodeKey} className="font-display font-bold text-2xl mb-4 mt-8" style={{ color: 'var(--text-primary)' }}>
             {children}
           </h3>
         )
       case 'h4':
         return (
-          <h4 key={i} className="font-display font-bold text-xl mb-4 mt-6" style={{ color: 'var(--text-primary)' }}>
+          <h4 key={nodeKey} className="font-display font-bold text-xl mb-4 mt-6" style={{ color: 'var(--text-primary)' }}>
             {children}
           </h4>
         )
       case 'quote':
         return (
           <blockquote 
-            key={i} 
+            key={nodeKey} 
             className="border-l-4 pl-6 py-2 my-8 italic text-xl leading-relaxed"
             style={{ borderColor: 'var(--accent-gold)', color: 'var(--text-secondary)', fontFamily: 'Source Serif 4, serif' }}
           >
@@ -81,7 +82,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
       case 'link':
         return (
           <Link
-            key={i}
+            key={nodeKey}
             href={node.fields?.url || ''}
             className="underline transition-colors hover:text-[var(--accent-gold)]"
             style={{ color: 'var(--accent-gold)' }}
@@ -97,7 +98,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         const ytId = embedUrl?.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/)?.[1]
 
         return (
-          <div key={i} className="my-10">
+          <div key={nodeKey} className="my-10">
             <div className="rounded-xl overflow-hidden shadow-2xl border border-white/5 aspect-video bg-black">
               <iframe
                 src={ytId ? `https://www.youtube.com/embed/${ytId}` : embedUrl}
@@ -120,7 +121,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
 
         if (isVideo) {
           return (
-            <div key={i} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 bg-black">
+            <div key={nodeKey} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 bg-black">
               <video
                 src={media.url || ''}
                 controls
@@ -139,7 +140,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         }
 
         return (
-          <div key={i} className="my-10 relative rounded-xl overflow-hidden shadow-2xl border border-white/5 group">
+          <div key={nodeKey} className="my-10 relative rounded-xl overflow-hidden shadow-2xl border border-white/5 group">
             <Image
               src={media.url || ''}
               alt={media.alt || ''}
@@ -161,12 +162,11 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         const url = node.value || node.fields?.url
         if (!url) return null
         
-        // Simple YouTube ID extraction
         const youtubeId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/)?.[1]
         
         if (youtubeId) {
           return (
-            <div key={i} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 aspect-video bg-black">
+            <div key={nodeKey} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 aspect-video bg-black">
               <iframe
                 src={`https://www.youtube.com/embed/${youtubeId}`}
                 className="w-full h-full"
@@ -177,11 +177,8 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
           )
         }
 
-        // Fallback for other iframes (Facebook, etc)
-        // Note: Facebook embeds usually require their own SDK/Embed code, 
-        // but if it's an iframe URL we can attempt to render it.
         return (
-          <div key={i} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 aspect-video bg-black">
+          <div key={nodeKey} className="my-10 rounded-xl overflow-hidden shadow-2xl border border-white/5 aspect-video bg-black">
              <iframe 
                src={url} 
                className="w-full h-full" 
@@ -194,7 +191,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         const ListTag = node.tag === 'ol' ? 'ol' : 'ul'
         return (
           <ListTag 
-            key={i} 
+            key={nodeKey} 
             className={`${node.tag === 'ol' ? 'list-decimal' : 'list-disc'} pl-6 mb-6 space-y-2`} 
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -203,13 +200,13 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         )
       case 'listitem':
         return (
-          <li key={i} className="leading-relaxed">
+          <li key={nodeKey} className="leading-relaxed">
             {children}
           </li>
         )
       case 'horizontalrule':
         return (
-          <hr key={i} className="my-10 border-t" style={{ borderColor: 'var(--border)' }} />
+          <hr key={nodeKey} className="my-10 border-t" style={{ borderColor: 'var(--border)' }} />
         )
       case 'paragraph':
       default:
@@ -220,7 +217,7 @@ export function serializeLexical(nodes: Node[]): JSX.Element[] {
         
         return (
           <Tag 
-            key={i} 
+            key={nodeKey} 
             className="mb-6 text-lg leading-relaxed text-justify"
             style={{ color: 'var(--text-secondary)', fontFamily: 'Source Serif 4, serif' }}
           >

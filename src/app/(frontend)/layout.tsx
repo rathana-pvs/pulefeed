@@ -3,8 +3,6 @@ import Script from 'next/script'
 import '@/app/globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { BreakingTicker } from '@/components/layout/BreakingTicker'
-import { getBreakingArticles } from '@/lib/api-server'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { NavigationProgress } from '@/components/layout/NavigationProgress'
 
@@ -47,16 +45,11 @@ export default async function FrontendLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [breakingArticles] = await Promise.all([
-    getBreakingArticles(),
-  ])
-
   return (
     <html lang="en">
       <body>
         <NavigationProgress />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <BreakingTicker articles={breakingArticles} />
           <Header />
           <main style={{ flex: 1 }}>
             {children}

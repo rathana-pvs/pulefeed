@@ -4,6 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── NYT Editorial Typography System ────────────────────────── */
+.article-title-nyt {
+  font-family: 'Playfair Display', Georgia, serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+}
+
+.article-excerpt-nyt {
+  font-family: Georgia, serif !important;
+  font-style: italic !important;
+  line-height: 1.55 !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ─── Seamless Native News Camouflage for AdsKeeper Widgets ───── */
+.mgbox,
+._mgwidget,
+.mgline {
+  background: transparent !important;
+}
+
 /* ─── Design System Variables ─────────────────────────────────── */
 :root {
   /* Dark Mode - Sleek dark slate and gray print palette */
