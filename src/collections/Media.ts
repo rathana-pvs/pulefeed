@@ -39,11 +39,13 @@ export const Media: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      ({ data, req }) => {
+      ({ data }) => {
         // If it's an external source, use the externalUrl
         if (data.source === 'external' && data.externalUrl) {
           data.url = data.externalUrl
-        } 
+        } else if (data.filename) {
+          data.url = `/media/${data.filename}`
+        }
         return data
       },
     ],

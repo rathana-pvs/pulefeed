@@ -199,6 +199,7 @@ export default function SearchPage() {
                       src={article.coverImage?.url || 'https://picsum.photos/seed/result/400/300'}
                       alt={article.coverImage?.alt || article.title}
                       fill
+                      unoptimized
                       sizes="(max-width: 640px) 100vw, 256px"
                       className="object-cover group-hover:scale-110 transition-transform duration-700 grayscale group-hover:grayscale-0"
                     />

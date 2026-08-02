@@ -28,3 +28,9 @@ For the news application, content summarization and AI formatting follow strict 
 3. **Maintain Factual Accuracy**: Preserve the original meaning and context without altering facts or adding unverified information.
 4. **Keep Paragraphs Short & Scannable**: Format output into short paragraphs for quick mobile scanning.
 5. **Respect Length & Constraints**: Adhere strictly to character or word limits required by the platform.
+
+---
+
+## 3. Deployment Confirmation Rule
+
+- **Explicit User Confirmation Required**: Do NOT automatically run deployment commands (`deploy.sh`, docker build/up on server, or git push) after making code changes. ALWAYS present proposed changes/fixes to the user first and wait for explicit confirmation before deploying to the remote server.

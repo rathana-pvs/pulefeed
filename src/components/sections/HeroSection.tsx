@@ -42,6 +42,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
                   alt={hero.coverImage?.alt || hero.title}
                   fill
                   priority
+                  unoptimized
                   sizes="(max-width: 1024px) 100vw, 60vw"
                   className="object-cover group-hover:scale-[1.01] transition-transform duration-700"
                 />
@@ -124,6 +125,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
                         src={article.coverImage?.url || `https://picsum.photos/seed/${article.id}/400/300`}
                         alt={article.coverImage?.alt || article.title}
                         fill
+                        unoptimized
                         sizes="160px"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />

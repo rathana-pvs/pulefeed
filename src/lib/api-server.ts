@@ -30,7 +30,16 @@ const cachedGetArticles = unstable_cache(
         sort: '-publishedAt',
       })
 
-      return result as unknown as PaginatedArticles
+      const docs = result.docs.map((doc: any) => {
+        if (doc.coverImage && typeof doc.coverImage === 'object' && doc.coverImage.url) {
+          if (typeof doc.coverImage.url === 'string' && doc.coverImage.url.startsWith('/api/media/file/')) {
+            doc.coverImage.url = doc.coverImage.url.replace('/api/media/file/', '/media/')
+          }
+        }
+        return doc
+      })
+
+      return { ...result, docs } as unknown as PaginatedArticles
     } catch (error) {
       console.warn('⚠️ Postgres connection failed in getArticles (expected during build):', error instanceof Error ? error.message : error)
       return {
@@ -79,7 +88,13 @@ const cachedGetArticle = unstable_cache(
         limit: 1,
         depth: 2,
       })
-      return (result.docs[0] as unknown as Article) || null
+      const article = (result.docs[0] as unknown as any) || null
+      if (article && article.coverImage && typeof article.coverImage === 'object' && article.coverImage.url) {
+        if (typeof article.coverImage.url === 'string' && article.coverImage.url.startsWith('/api/media/file/')) {
+          article.coverImage.url = article.coverImage.url.replace('/api/media/file/', '/media/')
+        }
+      }
+      return (article as unknown as Article) || null
     } catch (error) {
       console.warn(`⚠️ Postgres connection failed in getArticle for slug "${slug}" (expected during build):`, error instanceof Error ? error.message : error)
       return null
