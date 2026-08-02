@@ -46,7 +46,7 @@ export default async function FrontendLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light">
       <body>
         <NavigationProgress />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

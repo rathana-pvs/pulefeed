@@ -28,24 +28,6 @@
 
 /* ─── Design System Variables ─────────────────────────────────── */
 :root {
-  /* Dark Mode - Sleek dark slate and gray print palette */
-  --bg-primary: #121212;
-  --bg-surface: #1a1a1a;
-  --bg-card: #1a1a1a;
-  --bg-hover: #222222;
-  --text-primary: #f5f5f5;
-  --text-secondary: #cccccc;
-  --text-muted: #888888;
-  --accent-red: #e04c5a;
-  --accent-red-dim: rgba(224, 76, 90, 0.12);
-  --hero-overlay: #121212;
-  --hero-overlay-rgba: 18, 18, 18;
-  --border: #2e2e2e;
-  --border-subtle: #1f1f1f;
-  --theme-transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[data-theme="light"] {
   /* Light Mode (Default Print Style) - Pure white paper and charcoal */
   --bg-primary: #ffffff;
   --bg-surface: #ffffff;
@@ -60,6 +42,24 @@
   --hero-overlay-rgba: 255, 255, 255;
   --border: #e2e2e2;
   --border-subtle: #f1f1f1;
+  --theme-transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  /* Dark Mode - Sleek dark slate and gray print palette */
+  --bg-primary: #121212;
+  --bg-surface: #1a1a1a;
+  --bg-card: #1a1a1a;
+  --bg-hover: #222222;
+  --text-primary: #f5f5f5;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+  --accent-red: #e04c5a;
+  --accent-red-dim: rgba(224, 76, 90, 0.12);
+  --hero-overlay: #121212;
+  --hero-overlay-rgba: 18, 18, 18;
+  --border: #2e2e2e;
+  --border-subtle: #1f1f1f;
 }
 
 /* System Preference Fallback */

@@ -8,7 +8,7 @@ import { dict } from '@/lib/i18n'
 import Image from 'next/image'
 
 export function Header() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -16,27 +16,10 @@ export function Header() {
   useEffect(() => {
     // 1. Check for manually saved theme
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light'
-    
-    // 2. Check for system preference
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const defaultTheme = systemPrefersDark ? 'dark' : 'light'
-
-    const initialTheme = savedTheme || defaultTheme
+    const initialTheme = savedTheme || 'light'
     
     setTheme(initialTheme)
     document.documentElement.setAttribute('data-theme', initialTheme)
-
-    // Listen for system changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
-        const newSystemTheme = e.matches ? 'dark' : 'light'
-        setTheme(newSystemTheme)
-        document.documentElement.setAttribute('data-theme', newSystemTheme)
-      }
-    }
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
   const toggleTheme = () => {
