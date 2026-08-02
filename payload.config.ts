@@ -97,13 +97,13 @@ export default buildConfig({
       }
       return config
     },
-    ...(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
+    ...(process.env.ENABLE_CLOUDINARY === 'true' && process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
       ? [
           cloudinaryStorage({
             collections: {
               media: true,
             },
-            disableLocalStorage: true,
+            disableLocalStorage: false,
             config: {
               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
               api_key: process.env.CLOUDINARY_API_KEY,
