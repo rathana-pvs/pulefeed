@@ -227,7 +227,7 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
 
             {/* Under-article Native Recommendations Widget (Desktop Only) */}
-            <AdskeeperWidget widgetId={widgetUnderArticle} className="hidden lg:block my-8" />
+            <AdskeeperWidget widgetId={widgetUnderArticle} onlyShowOn="desktop" className="hidden lg:block my-8" />
 
             {/* Feed Bottom Content Widget - Inside main content column */}
             <div className="mt-8 border-t border-[var(--border)] pt-4">

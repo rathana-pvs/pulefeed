@@ -68,14 +68,28 @@ const MOCK_ADS = [
 // Adskeeper then fills all slots — including below-fold ones — on its own.
 let mgcLoadFired = false
 
-export default function AdskeeperWidget({ widgetId, className = '', adType }: AdskeeperWidgetProps) {
+export default function AdskeeperWidget({ widgetId, className = '', adType, onlyShowOn }: AdskeeperWidgetProps) {
   const isDev = process.env.NODE_ENV === 'development'
   const containerRef = useRef<HTMLDivElement>(null)
   const slotRef = useRef<HTMLDivElement>(null)
   const [filled, setFilled] = useState<boolean | null>(null) // null = pending
+  const [isAllowedDevice, setIsAllowedDevice] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (onlyShowOn === 'desktop') {
+      const mq = window.matchMedia('(min-width: 1024px)')
+      setIsAllowedDevice(mq.matches)
+      const handler = (e: MediaQueryListEvent) => setIsAllowedDevice(e.matches)
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    } else {
+      setIsAllowedDevice(true)
+    }
+  }, [onlyShowOn])
 
   useEffect(() => {
     if (isDev || !containerRef.current || !slotRef.current) return
+    if (onlyShowOn === 'desktop' && !window.matchMedia('(min-width: 1024px)').matches) return
 
     const el = containerRef.current
     const slotEl = slotRef.current
@@ -136,7 +150,7 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
       observer.disconnect()
       resizeObs.disconnect()
     }
-  }, [widgetId, isDev])
+  }, [widgetId, isDev, onlyShowOn])
 
   if (isDev) {
     // Sidebar Widget — sticky vertical native ad column
@@ -364,6 +378,12 @@ export default function AdskeeperWidget({ widgetId, className = '', adType }: Ad
       </div>
     )
   }
+
+  // Device restriction check (e.g. onlyShowOn="desktop"):
+  // Block rendering until we KNOW the device is allowed (null=pending, false=wrong device).
+  // This ensures the <div data-widget-id> never enters the DOM on mobile devices,
+  // preventing Adskeeper from scanning and requesting invisible ad slots.
+  if (onlyShowOn === 'desktop' && isAllowedDevice !== true) return null
 
   // filled=false means Adskeeper never filled the slot → render nothing
   if (filled === false) return null

@@ -243,7 +243,7 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
 
 
                   {/* Under-article Native Recommendations Widget (ID: 2043079 - Desktop Only) */}
-                  <AdskeeperWidget widgetId="2043079" className="hidden lg:block my-8" />
+                  <AdskeeperWidget widgetId="2043079" onlyShowOn="desktop" className="hidden lg:block my-8" />
 
                   {/* Related Articles — inside main column so sidebar stays visible */}
                   {index === 0 && initialRelated && initialRelated.length > 0 && (
@@ -269,6 +269,7 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
                       <AdskeeperWidget
                         widgetId="2043076"
                         adType="sidebar"
+                        onlyShowOn="desktop"
                       />
                     </div>
                   </aside>
