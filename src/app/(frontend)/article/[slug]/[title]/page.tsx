@@ -246,8 +246,8 @@ export default async function DynamicArticlePage({ params }: PageProps) {
                </div>
             )}
 
-            {/* Under-article Native Recommendations Widget */}
-            <AdskeeperWidget widgetId={widgetUnderArticle} className="my-8" />
+            {/* Under-article Native Recommendations Widget (Desktop Only) */}
+            <AdskeeperWidget widgetId={widgetUnderArticle} className="hidden lg:block my-8" />
 
             {/* Feed Bottom Content Widget - Inside main content column */}
             <div className="mt-8 border-t border-[var(--border)] pt-4">
