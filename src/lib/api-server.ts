@@ -2,6 +2,19 @@ import { Article, PaginatedArticles } from '@/types'
 import { getPayloadClient } from './payload'
 import { unstable_cache } from 'next/cache'
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('placeholder'))
+  ? process.env.NEXT_PUBLIC_SITE_URL
+  : 'https://pulefeed.tech'
+
+/** Ensure a cover image URL is always absolute. */
+function normalizeImageUrl(url: string | undefined | null): string | undefined {
+  if (!url) return undefined
+  if (url.startsWith('http')) return url
+  if (url.startsWith('/api/media/file/')) return `${SITE_URL}/media/${url.replace('/api/media/file/', '')}`
+  if (url.startsWith('/media/')) return `${SITE_URL}${url}`
+  return url
+}
+
 // Detect build time to bypass caching placeholder database responses
 const isBuildTime = 
   !process.env.DATABASE_URI || 
@@ -31,10 +44,8 @@ const cachedGetArticles = unstable_cache(
       })
 
       const docs = result.docs.map((doc: any) => {
-        if (doc.coverImage && typeof doc.coverImage === 'object' && doc.coverImage.url) {
-          if (typeof doc.coverImage.url === 'string' && doc.coverImage.url.startsWith('/api/media/file/')) {
-            doc.coverImage.url = doc.coverImage.url.replace('/api/media/file/', '/media/')
-          }
+        if (doc.coverImage && typeof doc.coverImage === 'object') {
+          doc.coverImage.url = normalizeImageUrl(doc.coverImage.url)
         }
         return doc
       })
@@ -89,10 +100,8 @@ const cachedGetArticle = unstable_cache(
         depth: 2,
       })
       const article = (result.docs[0] as unknown as any) || null
-      if (article && article.coverImage && typeof article.coverImage === 'object' && article.coverImage.url) {
-        if (typeof article.coverImage.url === 'string' && article.coverImage.url.startsWith('/api/media/file/')) {
-          article.coverImage.url = article.coverImage.url.replace('/api/media/file/', '/media/')
-        }
+      if (article && article.coverImage && typeof article.coverImage === 'object') {
+        article.coverImage.url = normalizeImageUrl(article.coverImage.url)
       }
       return (article as unknown as Article) || null
     } catch (error) {

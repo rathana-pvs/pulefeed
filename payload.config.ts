@@ -39,6 +39,7 @@ export default buildConfig({
     meta: {
       titleSuffix: '— Pulefeed CMS',
     },
+    theme: 'dark',
   },
   collections: [Articles, Authors, Media, Users, ShareLinks],
   editor: lexicalEditor({

@@ -263,9 +263,6 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
                   )}
                 </div>
 
-                {/* Widget 2043076 — only ONE instance in the DOM at a time.
-                    isDesktop===null means we haven't measured yet (SSR),
-                    so we render nothing and let the effect decide. */}
                 {isDesktop === true && (
                   <aside className="lg:col-span-4">
                     <div className="sticky top-24">
@@ -275,11 +272,6 @@ export function InfiniteArticleScroll({ initialArticle, initialRelated }: Infini
                       />
                     </div>
                   </aside>
-                )}
-                {isDesktop === false && (
-                  <div className="col-span-1 mt-2">
-                    <AdskeeperWidget widgetId="2043076" />
-                  </div>
                 )}
               </div>
 

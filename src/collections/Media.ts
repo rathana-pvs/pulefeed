@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import path from 'path'
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('placeholder'))
+  ? process.env.NEXT_PUBLIC_SITE_URL
+  : 'https://pulefeed.tech'
+
 export const Media: CollectionConfig = {
   slug: 'media',
   upload: {
@@ -44,7 +48,8 @@ export const Media: CollectionConfig = {
         if (data.source === 'external' && data.externalUrl) {
           data.url = data.externalUrl
         } else if (data.filename) {
-          data.url = `/media/${data.filename}`
+          // Store absolute URL so Next.js Image works in production
+          data.url = `${SITE_URL}/media/${data.filename}`
         }
         return data
       },
@@ -54,7 +59,11 @@ export const Media: CollectionConfig = {
         if (doc.source === 'external' && doc.externalUrl) {
           doc.url = doc.externalUrl
         } else if (doc.url && doc.url.startsWith('/api/media/file/')) {
-          doc.url = doc.url.replace('/api/media/file/', '/media/')
+          // Upgrade legacy relative Payload paths to absolute URLs
+          doc.url = `${SITE_URL}/media/${doc.url.replace('/api/media/file/', '')}`
+        } else if (doc.url && doc.url.startsWith('/media/')) {
+          // Upgrade legacy relative paths to absolute URLs
+          doc.url = `${SITE_URL}${doc.url}`
         }
         return doc
       },
