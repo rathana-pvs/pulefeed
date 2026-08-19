@@ -587,20 +587,81 @@ function buildLexicalJson(blocks: any[]): any {
     }
     
     if (block.type === 'twitter') {
+      const rawText = block.tweetText || block.text || ''
+      // Strip noisy pic.twitter and t.co URLs from text body
+      const cleanText = rawText
+        .replace(/https?:\/\/t\.co\/\S+/gi, '')
+        .replace(/pic\.twitter\.com\/\S+/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+      const authorText = block.author 
+        ? ` — ${block.author}${block.authorHandle ? ` (${block.authorHandle})` : ''}` 
+        : ''
+      
+      const children: any[] = []
+      if (cleanText) {
+        children.push({
+          type: 'text',
+          text: `“${cleanText}”`,
+          format: 2, // italic
+          style: '',
+          version: 1,
+        })
+      }
+
+      if (authorText) {
+        children.push({
+          type: 'text',
+          text: authorText,
+          format: 0,
+          style: '',
+          version: 1,
+        })
+      }
+      
+      if (block.url) {
+        if (children.length > 0) {
+          children.push({
+            type: 'text',
+            text: ' ',
+            format: 0,
+            style: '',
+            version: 1,
+          })
+        }
+        children.push({
+          type: 'link',
+          version: 2,
+          fields: {
+            url: block.url,
+            newTab: true,
+            linkType: 'custom',
+          },
+          format: '',
+          indent: 0,
+          children: [
+            {
+              type: 'text',
+              text: 'View on X',
+              format: 0,
+              style: '',
+              version: 1,
+            },
+          ],
+          direction: 'ltr',
+        })
+      }
+
+      if (children.length === 0) return null
+
       return {
-        type: 'block',
-        version: 2,
+        type: 'quote',
         format: '',
         indent: 0,
-        fields: {
-          id: `block-${Math.random().toString(36).substring(2, 11)}`,
-          blockType: 'twitterEmbed',
-          url: block.url,
-          tweetText: block.tweetText || block.text || '',
-          author: block.author || '',
-          authorHandle: block.authorHandle || '',
-          date: block.date || ''
-        }
+        version: 1,
+        children,
+        direction: 'ltr',
       }
     }
     
@@ -853,13 +914,25 @@ export async function POST(req: NextRequest) {
 
 Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
 
-            const res = await generateText({
-              model: primaryModel,
-              system: SYSTEM_PROMPT,
-              prompt: aiPrompt,
-            })
+            let rawText = ''
+            try {
+              const res = await generateText({
+                model: primaryModel,
+                system: SYSTEM_PROMPT,
+                prompt: aiPrompt,
+              })
+              rawText = res.text
+            } catch (primaryErr: any) {
+              console.warn(`Primary AI model (${PRIMARY_MODEL_ID}) failed in scrape_direct, trying fallback (${FALLBACK_MODEL_ID}):`, primaryErr?.message)
+              const res = await generateText({
+                model: fallbackModel,
+                system: SYSTEM_PROMPT,
+                prompt: aiPrompt,
+              })
+              rawText = res.text
+            }
 
-            let cleanJson = res.text.trim()
+            let cleanJson = rawText.trim()
             if (cleanJson.startsWith('```json')) {
               cleanJson = cleanJson.replace(/^```json\s*/, '').replace(/\s*```$/, '')
             } else if (cleanJson.startsWith('```')) {

@@ -141,7 +141,7 @@ export const AIAssistant: React.FC = () => {
       dispatchFields({ type: 'UPDATE', path: 'og.ogImage', value, valid: true })
       dispatchFields({ type: 'UPDATE', path: 'meta.image', value, valid: true })
     } else if (fieldName === 'content') {
-      let lexicalValue = typeof value === 'string' ? convertTextToLexicalJson(value) : value
+      let lexicalValue = typeof value === 'string' ? convertTextToLexicalJson(value) : JSON.parse(JSON.stringify(value))
       if (lexicalValue?.root?.children && result?.title) {
         const cleanT = result.title.trim().toLowerCase()
         const prefix = cleanT.substring(0, Math.min(25, cleanT.length))
@@ -175,6 +175,28 @@ export const AIAssistant: React.FC = () => {
     }
     setApplied(prev => ({ ...prev, [fieldName]: true }))
   }
+
+  const applyAll = () => {
+    if (!result) return
+    if (result.title) applyField('title', result.title)
+    if (result.coverImage) applyField('coverImage', result.coverImage)
+    if (result.excerpt) applyField('excerpt', result.excerpt)
+    if (result.content) applyField('content', result.content)
+    if (result.tags && result.tags.length > 0) applyField('tags', result.tags)
+    if (result.metaTitle) applyField('metaTitle', result.metaTitle)
+    if (result.metaDescription) applyField('metaDescription', result.metaDescription)
+  }
+
+  const allApplied = Boolean(
+    result &&
+    (!result.title || applied['title']) &&
+    (!result.coverImage || applied['coverImage']) &&
+    (!result.excerpt || applied['excerpt']) &&
+    (!result.content || applied['content']) &&
+    (!result.tags || applied['tags']) &&
+    (!result.metaTitle || applied['metaTitle']) &&
+    (!result.metaDescription || applied['metaDescription'])
+  )
 
   const buttons: { action: Action; icon: string; label: string; desc: string }[] = [
     { action: 'full', icon: '✍️', label: 'Full', desc: 'Generate content, excerpt & SEO' },
@@ -314,6 +336,37 @@ export const AIAssistant: React.FC = () => {
         }
         .ai-apply-btn:hover:not(:disabled) { background: #6558e0; }
         .ai-apply-btn:disabled { background: #2ecc71; cursor: default; }
+        .ai-apply-all-btn {
+          width: 100%;
+          padding: 10px 14px;
+          border: none;
+          border-radius: 8px;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: #fff;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          font-family: inherit;
+        }
+        .ai-apply-all-btn:hover:not(:disabled) {
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        .ai-apply-all-btn:disabled {
+          background: rgba(46, 204, 113, 0.2);
+          color: #2ecc71;
+          border: 1px solid rgba(46, 204, 113, 0.4);
+          box-shadow: none;
+          cursor: default;
+          transform: none;
+        }
         .ai-result { animation: ai-fade-in 0.3s ease forwards; }
         .ai-tag {
           display: inline-block;
@@ -474,13 +527,30 @@ export const AIAssistant: React.FC = () => {
             {status === 'success' && result && (
               <div className="ai-result" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
                 <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: '#2ecc71',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   padding: '4px 0',
-                }}>✅ Ready — click to apply</div>
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#2ecc71',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}>✅ Ready — click to apply</div>
+                </div>
+
+                <button
+                  type="button"
+                  className="ai-apply-all-btn"
+                  onClick={applyAll}
+                  disabled={allApplied}
+                >
+                  {allApplied ? '✓ All Fields Applied' : '🚀 Apply All Fields (1-Click)'}
+                </button>
+
+                <div style={{ height: '1px', background: 'var(--theme-border-color, #30363d)', margin: '2px 0' }} />
 
                 {result.title && (
                   <ResultCard label="Title" value={result.title} applied={!!applied['title']} onApply={() => applyField('title', result.title)} />

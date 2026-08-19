@@ -1,6 +1,7 @@
 import { Fragment, JSX } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { TwitterEmbed } from '@/components/article/TwitterEmbed'
 
 type Node = {
   type: string
@@ -69,27 +70,77 @@ export function serializeLexical(nodes: Node[], keyPrefix: string = 'node'): JSX
             {children}
           </h4>
         )
-      case 'quote':
+      case 'quote': {
+        const linkChild = node.children?.find((child: any) => 
+          child.type === 'link' && 
+          (child.fields?.url?.includes('twitter.com') || child.fields?.url?.includes('x.com'))
+        )
+        const twitterUrl = linkChild?.fields?.url
+
+        if (twitterUrl) {
+          const textChildren = node.children?.filter((child: any) => child.type === 'text') || []
+          const fullText = textChildren.map((c: any) => c.text || '').join(' ').replace(/^“|”$/g, '').trim()
+
+          return (
+            <TwitterEmbed
+              key={nodeKey}
+              url={twitterUrl}
+              text={fullText}
+            />
+          )
+        }
+
         return (
           <blockquote 
             key={nodeKey} 
-            className="border-l-4 pl-6 py-2 my-8 italic text-xl leading-relaxed"
-            style={{ borderColor: 'var(--accent-gold)', color: 'var(--text-secondary)', fontFamily: 'Source Serif 4, serif' }}
+            className="border-l-4 pl-6 py-3 my-8 text-xl leading-relaxed rounded-r-lg transition-colors"
+            style={{ 
+              borderColor: 'var(--accent-red)', 
+              backgroundColor: 'var(--bg-hover)', 
+              color: 'var(--text-primary)', 
+              fontFamily: 'Playfair Display, Georgia, serif',
+              fontStyle: 'italic'
+            }}
           >
             {children}
           </blockquote>
         )
-      case 'link':
+      }
+      case 'link': {
+        const isTwitterLink = node.fields?.url?.includes('twitter.com') || node.fields?.url?.includes('x.com')
+        if (isTwitterLink) {
+          return (
+            <a
+              key={nodeKey}
+              href={node.fields?.url || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 mt-3 text-xs font-semibold rounded-full border transition-all hover:scale-[1.02] not-italic shadow-sm"
+              style={{
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border)',
+                backgroundColor: 'var(--bg-hover)',
+              }}
+            >
+              <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              <span>{children || 'View on X'} ↗</span>
+            </a>
+          )
+        }
+
         return (
           <Link
             key={nodeKey}
             href={node.fields?.url || ''}
-            className="underline transition-colors hover:text-[var(--accent-gold)]"
-            style={{ color: 'var(--accent-gold)' }}
+            className="underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--accent-red)] font-medium"
+            style={{ color: 'var(--accent-red)' }}
           >
             {children}
           </Link>
         )
+      }
       case 'block':
         const block = node.fields
         if (!block || block.blockType !== 'videoEmbed') return null
