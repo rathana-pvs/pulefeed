@@ -16,7 +16,7 @@ npm run build
 
 # Reload PM2 zero-downtime
 echo "♻️  Reloading PM2 application..."
-pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs
 pm2 save
 
 # Warm the cache on startup
