@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: pulefeed-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pulefeed}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulefeed_secure_pass_4bc7e891}
+      POSTGRES_DB: ${POSTGRES_DB:-pulefeed}
+    ports:
+      - "127.0.0.1:5437:5432"
+    volumes:
+      - pulefeed_pulefeed_db_data:/var/lib/postgresql/data
+
+volumes:
+  pulefeed_pulefeed_db_data:
+    external: true

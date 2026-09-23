@@ -1,30 +1,30 @@
 #!/bin/bash
-# deploy.sh — Run this on your Hostinger VPS to deploy/update Pulefeed
-# Usage: bash deploy.sh
+# deploy.sh — Deploy/update Pulefeed on Hostinger VPS (PM2 + Nginx + Docker DB 5437)
 set -e
 
-echo "🚀 Deploying Pulefeed..."
+echo "🚀 Deploying Pulefeed (PM2 + Nginx)..."
 
 # Pull latest code
-git pull origin main
+git fetch origin main && git reset --hard origin/main
 
-# Build the new image
-echo "🔨 Building Docker image..."
-docker compose -f docker-compose.prod.yml build app
+# Install dependencies
+npm ci --ignore-scripts
 
-# Restart app with zero-downtime (DB stays up)
-echo "♻️  Restarting app container..."
-docker compose -f docker-compose.prod.yml up -d --no-deps app
+# Build Next.js & Payload
+echo "🔨 Building Next.js & Payload application..."
+npm run build
 
-# Remove dangling images to save disk space
-docker image prune -f
+# Reload PM2 zero-downtime
+echo "♻️  Reloading PM2 application..."
+pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+pm2 save
 
 # Warm the cache on startup
-echo "🔥 warming cache..."
-sleep 5
-curl -s -o /dev/null http://localhost/ || true
-sleep 2
-curl -s -o /dev/null http://localhost/ || true
+echo "🔥 Warming cache..."
+sleep 3
+curl -s -o /dev/null http://127.0.0.1:3000/ || true
+sleep 1
+curl -s -o /dev/null http://127.0.0.1:3000/ || true
 
 echo "✅ Deployment complete!"
-echo "📋 Logs: docker compose -f docker-compose.prod.yml logs -f app"
+pm2 status
