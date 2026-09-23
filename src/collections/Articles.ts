@@ -26,12 +26,39 @@ export const Articles: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      async ({ data }) => {
-        if (!data.slug && data.title) {
-          const generatedSlug = slugify(data.title)
-          
-          // Ensure slug is never empty
-          data.slug = generatedSlug || `article-${Date.now()}`
+      async ({ data, req, originalDoc }) => {
+        // Smart slug generation & 4-digit random deduplication if duplicate exists
+        const baseSlug = data.slug || (data.title ? slugify(data.title) : '')
+        if (baseSlug) {
+          let cleanSlug = slugify(baseSlug)
+          if (!cleanSlug) {
+            const random4 = Math.floor(1000 + Math.random() * 9000).toString()
+            cleanSlug = `article-${random4}`
+          }
+
+          if (req?.payload) {
+            try {
+              const existing = await req.payload.find({
+                collection: 'articles',
+                where: {
+                  slug: { equals: cleanSlug },
+                  ...(originalDoc?.id ? { id: { not_equals: originalDoc.id } } : {}),
+                },
+                limit: 1,
+              })
+
+              if (existing.totalDocs > 0) {
+                const random4 = Math.floor(1000 + Math.random() * 9000).toString()
+                data.slug = `${cleanSlug}-${random4}`
+              } else {
+                data.slug = cleanSlug
+              }
+            } catch {
+              data.slug = cleanSlug
+            }
+          } else {
+            data.slug = cleanSlug
+          }
         }
         
         if (data.content) {

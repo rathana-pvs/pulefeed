@@ -3,6 +3,7 @@ import { generateText } from 'ai'
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import * as cheerio from 'cheerio'
+import { slugify } from '@/lib/utils'
 
 function resolveUrl(baseUrl: string, relativeUrl: string): string {
   try {
@@ -694,7 +695,7 @@ const googleAI = createGoogleGenerativeAI({
 })
 
 const PRIMARY_MODEL_ID = 'gemini-3.5-flash-lite'
-const FALLBACK_MODEL_ID = 'gemini-2.5-flash'
+const FALLBACK_MODEL_ID = 'gemini-3.5-flash'
 
 const primaryModel = googleAI(PRIMARY_MODEL_ID)
 const fallbackModel = googleAI(FALLBACK_MODEL_ID)
@@ -711,7 +712,7 @@ export async function GET(req: NextRequest) {
       const res = await generateText({
         model,
         prompt: 'Reply with exactly: OK',
-        maxOutputTokens: 5,
+        maxOutputTokens: 200,
       })
       results[name] = { ok: true, response: res.text.trim() }
     } catch (e: any) {
@@ -723,20 +724,47 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ allOk, models: results }, { status: allOk ? 200 : 500 })
 }
 
+async function ensureUniqueSlug(payload: any, baseSlug: string): Promise<string> {
+  let cleanSlug = slugify(baseSlug)
+  if (!cleanSlug) {
+    const random4 = Math.floor(1000 + Math.random() * 9000).toString()
+    return `article-${random4}`
+  }
+
+  try {
+    const existing = await payload.find({
+      collection: 'articles',
+      where: { slug: { equals: cleanSlug } },
+      limit: 1,
+    })
+
+    if (existing.totalDocs > 0) {
+      const random4 = Math.floor(1000 + Math.random() * 9000).toString()
+      cleanSlug = `${cleanSlug}-${random4}`
+    }
+  } catch (err) {
+    console.warn('[Slug Unique Check Warning]', err)
+  }
+
+  return cleanSlug
+}
+
 const SYSTEM_PROMPT = `You are an expert news editor and content writer for Pulefeed, a reputable English-language news website covering global news, politics, technology, business, and culture.
 
-For content summarization and AI formatting, follow these strict editorial rules:
+For content generation and AI formatting, follow these strict editorial rules:
 1. Lead Excerpt / Summary: Create a punchy, high-engagement lead summary strictly under 160 characters.
-2. Title Handling: Do NOT duplicate the article title inside the main body content.
-3. Subheadings: Do NOT include any H2 or H3 subheadings in short summary articles—use clean, readable paragraphs.
-4. Total Word Count: The entire summary body content MUST be strictly between 120 and 140 words.
-5. Paragraph Constraints: Write EXACTLY 4 paragraphs (no more, no less). Each paragraph MUST be at most 35 words long.
-6. Core Takeaways First (Lead-In): Put the main conclusion, event, or answer in the very first sentence (the "5 Ws": Who, What, When, Where, Why).
-7. Eliminate Fluff & Redundancies: Strip away unnecessary background details, conversational filler, repetitive examples, and minor anecdotes.
-8. Maintain Factual Accuracy: Preserve the original meaning and context without altering facts or adding unverified information.
-9. SEO Metadata Limits:
+2. Smart Slug: Generate a concise, keyword-rich SEO slug in lowercase with hyphens (e.g. "us-tech-stocks-rally-ai-demand").
+3. Title Handling: Do NOT duplicate the article title inside the main body content.
+4. Subheadings: Do NOT include any H2 or H3 subheadings in the article body—use clean, readable paragraphs.
+5. Total Word Count: The entire article body content MUST be strictly between 300 and 500 words.
+6. Paragraph Constraints: Write between 4 and 7 paragraphs (4–7 paragraphs total). Keep each paragraph focused, readable, and engaging.
+7. Core Takeaways First (Lead-In): Put the main conclusion, event, or answer in the very first sentence (the "5 Ws": Who, What, When, Where, Why).
+8. Eliminate Fluff & Redundancies: Strip away unnecessary background details, conversational filler, repetitive examples, and minor anecdotes while maintaining comprehensive, high-quality coverage.
+9. Maintain Factual Accuracy: Preserve the original meaning and context without altering facts or adding unverified information.
+10. SEO Metadata Limits:
    - Meta Title: 50–60 characters (including - Pulefeed suffix).
    - Meta Description: 100–150 characters.
+   - Tags: 3-5 relevant lowercase tags.
 
 Always respond with valid JSON only. No markdown, no explanations outside the JSON.`
 
@@ -905,14 +933,15 @@ export async function POST(req: NextRequest) {
             .join('\n\n')
 
           if (rawParagraphsText.length > 50) {
-            const aiPrompt = `Given the news article title "${result.title}" and text content:\n"${rawParagraphsText.substring(0, 2000)}"\n\nSummarize and reformat into a complete news summary adhering strictly to these rules:
-1. "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
-2. "content": Summary body of EXACTLY 4 short paragraphs (no H2/H3 subheadings). Total word count MUST be strictly between 120 and 140 words. Each paragraph MUST be at most 35 words long. Do NOT duplicate title.
-3. "tags": ["3-5 relevant lowercase tags"]
-4. "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
-5. "metaDescription": SEO meta description strictly 100-150 characters.
+            const aiPrompt = `Given the news article title "${result.title}" and text content:\n"${rawParagraphsText.substring(0, 3500)}"\n\nSummarize and reformat into a comprehensive news article adhering strictly to these rules:
+1. "slug": A smart, clean, keyword-rich SEO slug in lowercase with hyphens (e.g. "global-energy-market-shift").
+2. "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
+3. "content": Complete article body of 4 to 7 paragraphs (no H2/H3 subheadings). Total word count MUST be strictly between 300 and 500 words. Do NOT duplicate title.
+4. "tags": ["3-5 relevant lowercase tags"]
+5. "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
+6. "metaDescription": SEO meta description strictly 100-150 characters.
 
-Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
+Return valid JSON with exact keys: { "slug", "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
 
             let rawText = ''
             try {
@@ -938,8 +967,12 @@ Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", 
             } else if (cleanJson.startsWith('```')) {
               cleanJson = cleanJson.replace(/^```\s*/, '').replace(/\s*```$/, '')
             }
+            cleanJson = cleanJson.replace(/,\s*([\}\]])/g, '$1')
 
             const aiData = JSON.parse(cleanJson)
+            if (aiData.slug || result.title) {
+              result.slug = await ensureUniqueSlug(payload, aiData.slug || result.title)
+            }
             if (aiData.excerpt) result.excerpt = aiData.excerpt
             if (aiData.tags) result.tags = aiData.tags
             if (aiData.metaTitle) result.metaTitle = aiData.metaTitle
@@ -951,7 +984,7 @@ Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", 
                 .map((p: string) => p.trim())
                 .filter(Boolean)
 
-              // Build Lexical JSON blocks from AI summarized 4 paragraphs + non-text media (images/videos)
+              // Build Lexical JSON blocks from AI summarized 4-7 paragraphs + non-text media (images/videos)
               const mediaBlocks = dedupedBlocks.filter((b: any) => b.type !== 'paragraph' && b.type !== 'heading')
               const summaryBlocks = [
                 ...aiParagraphs.map((pText: string) => ({ type: 'paragraph', text: pText, children: [{ type: 'text', text: pText }] })),
@@ -982,28 +1015,31 @@ Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", 
 
     let prompt = ''
     if (action === 'full') {
-      prompt = `Given the article title "${title}"${content ? ` and notes: "${content}"` : ''}, generate a complete summary news article adhering to these rules:
+      prompt = `Given the article title "${title}"${content ? ` and notes: "${content}"` : ''}, generate a complete news article adhering to these rules:
+- "slug": A smart, clean, keyword-rich SEO slug in lowercase with hyphens.
 - "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
-- "content": Summary body of EXACTLY 4 short paragraphs (no H2/H3 subheadings). Total word count MUST be between 120 and 140 words. Each paragraph MUST be at most 35 words long.
+- "content": Complete article body of 4 to 7 paragraphs (no H2/H3 subheadings). Total word count MUST be between 300 and 500 words.
 - "tags": ["3-5 relevant lowercase tags"]
 - "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
 - "metaDescription": SEO meta description strictly 100-150 characters.
 
-Return JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
+Return JSON with exact keys: { "slug", "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
     } else if (action === 'content_only') {
-      prompt = `Given the article title "${title}"${content ? ` and notes: "${content}"` : ''}, generate the summary article content adhering to these rules:
+      prompt = `Given the article title "${title}"${content ? ` and notes: "${content}"` : ''}, generate the article content adhering to these rules:
+- "slug": A smart, clean, keyword-rich SEO slug in lowercase with hyphens.
 - "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
-- "content": Summary body of EXACTLY 4 short paragraphs (no H2/H3 subheadings). Total word count MUST be between 120 and 140 words. Each paragraph MUST be at most 35 words long.
+- "content": Complete article body of 4 to 7 paragraphs (no H2/H3 subheadings). Total word count MUST be between 300 and 500 words.
 
-Return JSON with exact keys: { "excerpt", "content" }`
+Return JSON with exact keys: { "slug", "excerpt", "content" }`
     } else if (action === 'seo_only') {
       prompt = `Given the article title "${title}"${content ? ` and excerpt/content: "${content}"` : ''}, generate SEO metadata adhering to these rules:
+- "slug": A smart, clean, keyword-rich SEO slug in lowercase with hyphens.
 - "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
 - "tags": ["3-5 relevant lowercase tags"]
 - "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
 - "metaDescription": SEO meta description strictly 100-150 characters.
 
-Return JSON with exact keys: { "excerpt", "tags", "metaTitle", "metaDescription" }`
+Return JSON with exact keys: { "slug", "excerpt", "tags", "metaTitle", "metaDescription" }`
     }
 
     let rawText = ''
@@ -1031,8 +1067,12 @@ Return JSON with exact keys: { "excerpt", "tags", "metaTitle", "metaDescription"
     } else if (cleanJson.startsWith('```')) {
       cleanJson = cleanJson.replace(/^```\s*/, '').replace(/\s*```$/, '')
     }
+    cleanJson = cleanJson.replace(/,\s*([\}\]])/g, '$1')
 
     const aiData = JSON.parse(cleanJson)
+    if (aiData.slug || title) {
+      aiData.slug = await ensureUniqueSlug(payload, aiData.slug || title)
+    }
     const enforced = enforceSeoLimits(aiData)
 
     return NextResponse.json({ success: true, data: enforced })

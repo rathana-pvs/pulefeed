@@ -99,56 +99,51 @@ export const RichText = ({
     }
   }
 
-  // ─── Assemble topElements (shown before "Continue Reading") ───
-  const topElements: React.ReactNode[] = []
-  topElements.push(...serializeLexical(nodes.slice(0, p1EndIndex), 'top-p1'))
-  topElements.push(
-    <div key={`ad-inarticle-1-wrap`} className="my-3 w-full flex justify-center items-center">
-      <AdskeeperWidget key={`ad-inarticle-1`} widgetId={primaryWidgetId} className="!my-0" />
-    </div>
-  )
+  // If article has fewer than 3 paragraphs, render plain with in_article_1 after P1
+  if (paragraphCount < 3) {
+    const p1Nodes = nodes.slice(0, p1EndIndex)
+    const restNodes = nodes.slice(p1EndIndex)
+    return (
+      <div className={`rich-text ${className || ''}`}>
+        {serializeLexical(p1Nodes, 'p1')}
+        {primaryWidgetId && (
+          <div key="ad-inarticle-1-wrap" className="my-3 w-full flex justify-center items-center">
+            <AdskeeperWidget key="ad-inarticle-1" widgetId={primaryWidgetId} className="!my-0" />
+          </div>
+        )}
+        {serializeLexical(restNodes, 'rest')}
+      </div>
+    )
+  }
 
-  // ─── Assemble bottomElements (shown when expanded) ───
-  const bottomElements: React.ReactNode[] = []
-
-  // Paragraph 2
+  // Paragraph node slices
+  const p1Nodes = nodes.slice(0, p1EndIndex)
   const p2Nodes = nodes.slice(p1EndIndex, p2EndIndex)
-  if (p2Nodes.length > 0) {
-    bottomElements.push(...serializeLexical(p2Nodes, 'bot-p2'))
-    if (secondaryWidgetId) {
-      bottomElements.push(
-        <div key={`ad-inarticle-2-wrap`} className="my-4 w-full flex justify-center items-center">
-          <AdskeeperWidget key={`ad-inarticle-2`} widgetId={secondaryWidgetId} className="!my-0" />
-        </div>
-      )
-    }
-  }
-
-  // Paragraph 3
   const p3Nodes = nodes.slice(p2EndIndex, p3EndIndex)
-  if (p3Nodes.length > 0) {
-    bottomElements.push(...serializeLexical(p3Nodes, 'bot-p3'))
-  }
-
-  // Paragraph 4+ (rendered after Feed Ads if present)
   const restNodes = nodes.slice(p3EndIndex)
-  if (restNodes.length > 0) {
-    bottomElements.push(...serializeLexical(restNodes, 'bot-p4-p5'))
-  }
 
-  // ─── Collapsed state: teaser preview + Continue Reading button ───
+  // ─── Collapsed state: P1 -> in_article_1 -> P2 -> Blur on P3 -> Continue Reading ───
   if (!isExpanded) {
-    const teaserElement = bottomElements[0]
-
     return (
       <div className={`rich-text relative ${className || ''}`}>
-        {topElements}
+        {/* Paragraph 1 */}
+        {serializeLexical(p1Nodes, 'top-p1')}
 
-        {/* Teaser text with blur filter and gradient shading mask */}
-        {teaserElement && (
-          <div className="relative overflow-hidden h-[5.5rem] max-h-[90px] mt-4 mb-3 select-none pointer-events-none">
+        {/* In-Article 1 Ad */}
+        {primaryWidgetId && (
+          <div key="ad-inarticle-1-wrap" className="my-3 w-full flex justify-center items-center">
+            <AdskeeperWidget key="ad-inarticle-1" widgetId={primaryWidgetId} className="!my-0" />
+          </div>
+        )}
+
+        {/* Paragraph 2 */}
+        {serializeLexical(p2Nodes, 'top-p2')}
+
+        {/* Paragraph 3 with blur & gradient fade mask */}
+        {p3Nodes.length > 0 && (
+          <div className="relative overflow-hidden max-h-[90px] mt-3 mb-2 select-none pointer-events-none">
             <div className="blur-[1.5px] opacity-75 line-clamp-3">
-              {teaserElement}
+              {serializeLexical(p3Nodes, 'blurred-p3')}
             </div>
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--bg-primary)]/80 to-[var(--bg-primary)]" />
           </div>
@@ -179,11 +174,34 @@ export const RichText = ({
     )
   }
 
-  // ─── Expanded state: full article with phased ads ───
+  // ─── Expanded state: Full article (P1 -> in_article_1 -> P2 -> P3 -> in_article_2 -> P4..P7) ───
   return (
     <div className={`rich-text ${className || ''}`}>
-      {topElements}
-      {bottomElements}
+      {/* Paragraph 1 */}
+      {serializeLexical(p1Nodes, 'full-p1')}
+
+      {/* In-Article 1 Ad */}
+      {primaryWidgetId && (
+        <div key="ad-inarticle-1-full-wrap" className="my-3 w-full flex justify-center items-center">
+          <AdskeeperWidget key="ad-inarticle-1-full" widgetId={primaryWidgetId} className="!my-0" />
+        </div>
+      )}
+
+      {/* Paragraph 2 */}
+      {serializeLexical(p2Nodes, 'full-p2')}
+
+      {/* Paragraph 3 (Unblurred) */}
+      {serializeLexical(p3Nodes, 'full-p3')}
+
+      {/* In-Article 2 Ad after P3 when more paragraphs exist */}
+      {secondaryWidgetId && restNodes.length > 0 && (
+        <div key="ad-inarticle-2-full-wrap" className="my-4 w-full flex justify-center items-center">
+          <AdskeeperWidget key="ad-inarticle-2-full" widgetId={secondaryWidgetId} className="!my-0" />
+        </div>
+      )}
+
+      {/* Remaining Paragraphs (P4, P5, P6, P7...) */}
+      {restNodes.length > 0 && serializeLexical(restNodes, 'full-rest')}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { useFormFields, useForm } from '@payloadcms/ui'
 
 interface AIResult {
   title?: string
+  slug?: string
   content?: string
   excerpt?: string
   tags?: string[]
@@ -120,7 +121,9 @@ export const AIAssistant: React.FC = () => {
   }
 
   const applyField = (fieldName: string, value: any) => {
-    if (fieldName === 'excerpt' && typeof value === 'string' && result?.title) {
+    if (fieldName === 'slug' && typeof value === 'string') {
+      dispatchFields({ type: 'UPDATE', path: 'slug', value, valid: true })
+    } else if (fieldName === 'excerpt' && typeof value === 'string' && result?.title) {
       let cleanExcerpt = value
       const cleanT = result.title.trim().toLowerCase()
       const prefix = cleanT.substring(0, Math.min(25, cleanT.length))
@@ -179,6 +182,7 @@ export const AIAssistant: React.FC = () => {
   const applyAll = () => {
     if (!result) return
     if (result.title) applyField('title', result.title)
+    if (result.slug) applyField('slug', result.slug)
     if (result.coverImage) applyField('coverImage', result.coverImage)
     if (result.excerpt) applyField('excerpt', result.excerpt)
     if (result.content) applyField('content', result.content)
@@ -190,6 +194,7 @@ export const AIAssistant: React.FC = () => {
   const allApplied = Boolean(
     result &&
     (!result.title || applied['title']) &&
+    (!result.slug || applied['slug']) &&
     (!result.coverImage || applied['coverImage']) &&
     (!result.excerpt || applied['excerpt']) &&
     (!result.content || applied['content']) &&
@@ -554,6 +559,9 @@ export const AIAssistant: React.FC = () => {
 
                 {result.title && (
                   <ResultCard label="Title" value={result.title} applied={!!applied['title']} onApply={() => applyField('title', result.title)} />
+                )}
+                {result.slug && (
+                  <ResultCard label="Smart Slug" value={result.slug} applied={!!applied['slug']} onApply={() => applyField('slug', result.slug)} />
                 )}
                 {result.coverImage && (
                   <ResultCard 

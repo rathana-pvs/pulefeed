@@ -6,15 +6,22 @@ For the news application, content summarization and AI formatting follow strict 
 
 - **Lead Excerpt / Summary**:
   Create a punchy, high-engagement lead summary **strictly under 160 characters**.
+- **Smart Slug**:
+  AI-generated concise, SEO-friendly slug (lowercase, hyphens). If duplicate, automatically append a unique 4-digit random suffix.
 - **Title Handling**:
   Do NOT duplicate the article title inside the main body content.
 - **Subheadings**:
-  Do NOT include any H2 or H3 subheadings in short summary articles—use clean, readable paragraphs.
+  Do NOT include any H2 or H3 subheadings in the article body—use clean, readable paragraphs.
 - **Total Word Count**:
-  The entire summary body content **MUST be strictly between 120 and 140 words**.
+  The entire article body content **MUST be strictly between 300 and 500 words**.
 - **Paragraph Constraints**:
-  Write **EXACTLY 4 paragraphs** (no more, no less).
-  Each paragraph **MUST be at most 35 words long**.
+  Write **between 4 and 7 paragraphs** (4–7 paragraphs total).
+- **In-Article Ads Layout**:
+  - After Paragraph 1: `in_article_1` ad
+  - Paragraph 2
+  - Paragraph 3 (with blur effect on P3 in collapsed view)
+  - "Continue Reading" button
+  - `feed_bottom` ad at bottom
 - **SEO Metadata Limits**:
   - Meta Title: **50–60 characters** (including `- Pulefeed` suffix).
   - Meta Description: **100–150 characters**.
