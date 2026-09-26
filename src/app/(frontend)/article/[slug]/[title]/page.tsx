@@ -62,7 +62,6 @@ export default async function DynamicArticlePage({ params }: PageProps) {
   const widgetInArticle1 = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1 || '2043077'
   const widgetInArticle2 = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_2 || '2044156'
   const widgetFeed = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED || '2043075'
-  const widgetUnderArticle = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE || '2043079'
   const widgetBottomFeed = process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_BOTTOM_FEED || '2043075'
 
   const article = await getArticle(slug)
@@ -245,9 +244,6 @@ export default async function DynamicArticlePage({ params }: PageProps) {
                   </p>
                </div>
             )}
-
-            {/* Under-article Native Recommendations Widget (Desktop Only) */}
-            <AdskeeperWidget widgetId={widgetUnderArticle} onlyShowOn="desktop" className="hidden lg:block my-8" />
 
             {/* Feed Bottom Content Widget - Inside main content column */}
             <div className="mt-8 border-t border-[var(--border)] pt-4">
